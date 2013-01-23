@@ -1,0 +1,37 @@
+
+--
+-- 项目开发经验
+--
+
+1）zeromq的java封装从https://github.com/zeromq/jzmq下载（zeromq网站指向的是http，下不了）
+
+2）macOS上，一般没有autoconf和automake，用port工具去装
+   sudo port // 输入密码进入后
+   > install autoconf
+   > install automake
+
+3）装完后按步骤运行./autogen.sh，还是报错，如下：
+
+autoreconf: Entering directory `.'
+autoreconf: configure.in: not using Gettext
+autoreconf: running: aclocal -I config --force -I config
+autoreconf: configure.in: tracing
+autoreconf: configure.in: not using Libtool
+autoreconf: running: /opt/local/bin/autoconf --include=config --force
+configure.in:28: error: possibly undefined macro: AC_PROG_LIBTOOL
+      If this token and others are legitimate, please use m4_pattern_allow.
+      See the Autoconf documentation.
+autoreconf: /opt/local/bin/autoconf failed with exit status: 1
+autogen.sh: error: autoreconf exited with status 0
+
+  网上查说需重装libtool，还是用port搞定，再运行OK
+
+4）再按步骤运行./configure，如果没有先装好zeromq，会报错，如下
+
+configure: error: cannot find zmq.h
+
+  按步骤是要先装zeromq的，装的过程很顺利，注意用sudo运行make install
+
+5）接着按步骤make，OK了，看到了src/zmq.jar，用sudo make install部署，在使用时加上虚拟机参数：-Djava.library.path=/usr/local/lib
+
+

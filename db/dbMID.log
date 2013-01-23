@@ -1,0 +1,2 @@
+/*C250*/SET SCHEMA PUBLIC
+\u000acreate table T_DOMAIN\u000a(\u000a  domainId varchar(30) not null primary key,\u000a  host varchar(30) not null,\u000a  requestPort integer not null,\u000a  replyPort integer not null\u000a)
