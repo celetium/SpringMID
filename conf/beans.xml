@@ -15,6 +15,7 @@
 	<bean id="T1" class="b.SpringMID.core.Framework" lazy-init="true">
 		<property name="routedList">
 			<list>
+				<value>ISC</value>
 				<value>in1</value>
 			</list>
 		</property>
@@ -22,20 +23,43 @@
 	<bean id="T2" class="b.SpringMID.core.Framework" lazy-init="true">
 		<property name="routedList">
 			<list>
+				<value>ISC</value>
 				<value>biz-sample-1</value>
 			</list>
 		</property>
 	</bean>
-	<bean id="plt.proxy" class="b.SpringMID.core.Framework" lazy-init="true">
+	<bean id="plt.proxy1" class="b.SpringMID.core.Framework" lazy-init="true">
 		<property name="routedList">
 			<list>
-				<value>DMPROXY</value>
+				<value>DMPROXY1</value>
 			</list>
 		</property>
 	</bean>
-	<bean id="manager" class="b.SpringMID.core.rm.RunningManagerDB" />
+	<bean id="plt.proxy2" class="b.SpringMID.core.Framework" lazy-init="true">
+		<property name="routedList">
+			<list>
+				<value>DMPROXY2</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="router" class="b.SpringMID.core.isc.RouterByDB">
+		<property name="jdbc">
+			<ref bean="jdbc" />
+		</property>
+	</bean>
+	<bean id="ISCRouter" class="b.SpringMID.core.isc.ISCRouterByDB">
+		<property name="jdbc">
+			<ref bean="jdbc" />
+		</property>
+	</bean>
+	<bean id="register" class="b.SpringMID.core.isc.RegisterByDB">
+		<property name="jdbc">
+			<ref bean="jdbc" />
+		</property>
+	</bean>
 	<bean id="ISC" class="b.SpringMID.core.isc.ISCZeroMQ" />
-	<bean id="DMPROXY" class="b.SpringMID.core.isc.DMProxyZeroMQ" />
+	<bean id="DMPROXY1" class="b.SpringMID.core.isc.DMProxyZeroMQ" p:replyPort="12011" />
+	<bean id="DMPROXY2" class="b.SpringMID.core.isc.DMProxyZeroMQ" p:requestPort="12012" />
 	<bean id="in1" class="b.SpringMID.channel.Timer" p:channelId="timer" />
 	<bean id="in2" class="b.SpringMID.channel.Timer" p:channelId="timer" />
 	<bean id="biz-sample-1" class="b.SpringMID.business.Sample" />

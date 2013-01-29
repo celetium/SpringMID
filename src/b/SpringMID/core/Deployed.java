@@ -2,7 +2,7 @@ package b.SpringMID.core;
 
 import java.io.Serializable;
 
-public class DeployedRouted implements Serializable {
+public class Deployed implements Serializable {
 	private static final long serialVersionUID = -8661707591727385235L;
 	private String domainId;
 	public String getDomainId() {
@@ -32,25 +32,11 @@ public class DeployedRouted implements Serializable {
 	public void setBeanId(String beanId) {
 		this.beanId = beanId;
 	}
-	private String host = null;
-	public String getHost() {
-		return host;
+	private String flags;
+	public String getFlags() {
+		return flags;
 	}
-	public void setHost(String host) {
-		this.host = host;
-	}
-	private int requestPort = 0;
-	public int getRequestPort() {
-		return requestPort;
-	}
-	public void setRequestPort(int requestPort) {
-		this.requestPort = requestPort;
-	}
-	private int replyPort = 0;
-	public int getReplyPort() {
-		return replyPort;
-	}
-	public void setReplyPort(int replyPort) {
-		this.replyPort = replyPort;
+	public void setFlags(String flags) {
+		this.flags = flags;
 	}
 }

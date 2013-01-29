@@ -1,0 +1,14 @@
+eclipse.preferences.version=1
+encoding//conf/guide.txt=UTF-8
+encoding//src/b/SpringMID/core/Framework.java=UTF-8
+encoding//src/b/SpringMID/core/Module.java=UTF-8
+encoding//src/b/SpringMID/core/RS.java=UTF-8
+encoding//src/b/SpringMID/core/Routed.java=UTF-8
+encoding//src/b/SpringMID/core/Runner.java=UTF-8
+encoding//src/b/SpringMID/core/SyncPoint.java=UTF-8
+encoding//src/b/SpringMID/core/SyncPointKey.java=UTF-8
+encoding//src/b/SpringMID/core/isc/DMProxyZeroMQ.java=UTF-8
+encoding//src/b/SpringMID/core/isc/ISCRouterByDB.java=UTF-8
+encoding//src/b/SpringMID/core/isc/ISCZeroMQ.java=UTF-8
+encoding//src/b/SpringMID/core/isc/RouterByDB.java=UTF-8
+encoding//src/b/SpringMID/core/isc/ZeroMQReceiverX.java=UTF-8

@@ -35,9 +35,9 @@ public class ZeroMQReceiverX {
 			long tid = Thread.currentThread().getId();
 			String cmder = String.format("inproc://cmder%d", tid);
 			ZMQ.Socket socket = context.socket(ZMQ.PULL);
+			rs.log.info("接收者[" + tid + "]在[" + listenPoint + "]上监听");
 			socket.bind(listenPoint);
 			socket.bind(cmder);
-			rs.log.info("接收者[" + tid + "]在[" + listenPoint + "]上监听");
 			ZMQ.Socket handler = context.socket(ZMQ.PUSH);
 			String handlerPoint = String.format("inproc://handler%d", pulls.get(0).getId());
 			handler.bind(handlerPoint);
@@ -75,16 +75,7 @@ public class ZeroMQReceiverX {
 				if (request.length <= 4)
 					break;
 				Message msg = (Message) rs.fromByteArray(request);
-				msg.print();
 				handler.handle(msg);
-//				if (isRequest) { // 请求-从消息中取得目的地
-//					DeployedRouted r = (DeployedRouted) rs.fromByteArray(msg.getBytes("__to_routed__"));
-//					msg.remove("__to_routed__");
-//					msg.add("__caller__", "ISC");
-//					rs.getRouted(r.getBeanId()).doForward(msg);
-//				}
-//				else // 应答-直接让框架处理
-//					rs.frame.msgReturn("ISC", msg);
 			}
 			rs.log.info("处理者[" + tid + "]退出");
 			socket.close();

@@ -2,12 +2,12 @@ package b.SpringMID.core.isc;
 
 import org.zeromq.ZMQ;
 
-import b.SpringMID.core.DeployedRouted;
+import b.SpringMID.core.DMProxy;
 import b.SpringMID.core.Message;
 import b.SpringMID.core.RS;
 import b.SpringMID.core.Routed;
 
-public class DMProxyZeroMQ extends Routed {
+public class DMProxyZeroMQ extends Routed implements DMProxy {
 
 	private String prefix, self;
 	private ZMQ.Context context;
@@ -38,11 +38,16 @@ public class DMProxyZeroMQ extends Routed {
 	public void setReplyPort(int replyPort) {
 		this.replyPort = replyPort;
 	}
-
+	
+	@Override
+	public String getProxyProperties() {
+		return getHost() + ":" + requestPort + "," + replyPort;
+	}
+	
 	@Override
 	public void start() {
-		prefix = "ipc://" + rs.frame.getRunDir() + "/dev/";
-		self = prefix +  rs.frame.getId() + "." + rs.frame.getProcessId();
+		prefix = "ipc://" + rs.getRunDir() + "/dev/";
+		self = prefix +  rs.frame.getId() + "." + rs.getProcessId();
 		context = ZMQ.context(1);
 		if (requestPort > 0) {
 			String requestPoint = "tcp://*." + requestPort;
@@ -54,28 +59,26 @@ public class DMProxyZeroMQ extends Routed {
 			replyReceiver = new ZeroMQReceiverX(context, replyPoint, 2, new ISCReplyer());
 			replyReceiver.start();
 		}
-		rs.jdbc.update("DELETE FROM t_domain WHERE domainId = ?", rs.frame.getDomainId());
-		rs.jdbc.update("INSERT INTO t_domain VALUES (?, ?, ?, ?)", rs.frame.getDomainId(), host, requestPort, replyPort);
+		if (host == null) // 未设置，通常不用设置，考虑到多网卡时，可能需要特别指定
+			host = rs.getIP();
 	}
 
 	class ISCRequester implements ZeroMQReceiverX.IHandler {
 		@Override
 		public void handle(Message msg) {
-			DeployedRouted r = (DeployedRouted) rs.fromByteArray(msg.getBytes("__to_routed__"));
-			msg.add("__caller__", RS.ID4DMPROXY);
-			send(msg, r, "RQ");
+			DeployedZeroMQ r = (DeployedZeroMQ) msg.iscTOs.pop();
+			send(msg, r, ".RQ");
 		}
 	}
 
 	class ISCReplyer implements ZeroMQReceiverX.IHandler {
 		@Override
 		public void handle(Message msg) {
-			DeployedRouted r = (DeployedRouted) rs.fromByteArray(msg.getBytes("__from_routed__"));
-			send(msg, r, "RS");
+			rs.frame.msgReturn(RS.ID4DMPROXY, msg);
 		}
 	}
 	
-	private void send(Message msg, DeployedRouted r, String suffix) {
+	private void send(Message msg, DeployedZeroMQ r, String suffix) {
 		ZMQ.Socket socket = context.socket(ZMQ.PUSH);
 		String clnt = self + "_" + r.getServerId() + "." + r.getProcessId() + suffix;
 		socket.bind(clnt);
@@ -88,7 +91,6 @@ public class DMProxyZeroMQ extends Routed {
 
 	@Override
 	public void stop() {
-		rs.jdbc.update("DELETE FROM t_domain WHERE domainId = ?", rs.frame.getDomainId());
 		requestReceiver.stop();
 		replyReceiver.stop();
 	}

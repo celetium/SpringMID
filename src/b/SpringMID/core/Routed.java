@@ -4,7 +4,6 @@ public abstract class Routed extends Module {
 	public void doForward(Message msg) {}
 	public void doReturn(Message msg) {}
 	protected void forwardMsg(String routeKey, Message msg) {
-		msg.add("__processor__", getId());
 		rs.frame.msgForward(getId(), routeKey, msg);
 	}
 	protected void returnMsg(Message msg) {

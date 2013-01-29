@@ -6,22 +6,76 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
 
 import org.apache.commons.logging.Log;
 import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.jezhumble.javasysmon.JavaSysMon;
 
 public class RS {
 	public static final String ID4ISC = "ISC";
 	public static final String ID4DMPROXY = "DMProxy";
+	public static final String EVENT4ROUTEDSTARTED = "routed.started";
+	public static final String EVENT4ROUTEDSTOPPED = "routed.stopped";
 	private static RS _instance = new RS();
-	private RS() {}
+	private RS() {
+		runDir = System.getProperty("user.dir");
+//		domainId = System.getProperty("user.name");
+		domainId = System.getProperty("domainId");
+		processId = new JavaSysMon().currentPid();
+		address = this.getIPAddress();
+	}
+	public boolean isAlive(int processId) {
+		JavaSysMon sys = new JavaSysMon();
+		return (sys.processTree().find(processId) != null);
+	}
+	private String domainId;
+	public String getDomainId() {
+		return domainId;
+	}
+	private String runDir;
+	public String getRunDir() {
+		return runDir;
+	}
+	private int processId;
+	public int getProcessId() {
+		return processId;
+	}
+	private String address;
+	public String getIP() {
+		return address;
+	}
+	private String getIPAddress() {
+		try {
+			Enumeration<NetworkInterface> eni = NetworkInterface.getNetworkInterfaces();
+			while (eni.hasMoreElements()) {
+				NetworkInterface ni = eni.nextElement();
+				Enumeration<InetAddress> eia = ni.getInetAddresses();
+				while (eia.hasMoreElements()) {
+					InetAddress ia = eia.nextElement();
+					if (ia instanceof Inet4Address) {
+						if (! "localhost".equals(ia.getHostName()))
+							return ia.getHostAddress();
+						System.out.println("IA: " + ia.getHostName() + "/" + ia.getHostAddress());
+					}
+				}
+			}
+		} catch (SocketException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+		throw new RuntimeException("未能获取本机IP地址");
+	}
 	public static RS getInstance() {
 		return _instance;
 	}
 	public AbstractApplicationContext ctx;
 	public Framework frame;
-	public JdbcTemplate jdbc;
 	public Log log;
 	public void error(boolean b, String info) {
 		if (b)

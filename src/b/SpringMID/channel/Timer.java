@@ -11,7 +11,7 @@ public class Timer extends Channel {
 	public void handler() {
 		for (int i = 0; i < 1; ++i) {
 			rs.sleep(5000);
-			Message msg = new Message("--12345678Hello World!!");
+			Message msg = new Message();
 			rs.log.info(getId() + " forward message ..." + msg.getId());
 			forwardMsg("a", msg);
 		}
