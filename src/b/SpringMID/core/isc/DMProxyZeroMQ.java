@@ -50,12 +50,12 @@ public class DMProxyZeroMQ extends Routed implements DMProxy {
 		self = prefix +  rs.frame.getId() + "." + rs.getProcessId();
 		context = ZMQ.context(1);
 		if (requestPort > 0) {
-			String requestPoint = "tcp://*." + requestPort;
+			String requestPoint = "tcp://*:" + requestPort;
 			requestReceiver = new ZeroMQReceiverX(context, requestPoint, 2, new ISCRequester());
 			requestReceiver.start();
 		}
 		if (replyPort > 0) {
-			String replyPoint = "tcp://*." + replyPort;
+			String replyPoint = "tcp://*:" + replyPort;
 			replyReceiver = new ZeroMQReceiverX(context, replyPoint, 2, new ISCReplyer());
 			replyReceiver.start();
 		}
@@ -67,14 +67,17 @@ public class DMProxyZeroMQ extends Routed implements DMProxy {
 		@Override
 		public void handle(Message msg) {
 			DeployedZeroMQ r = (DeployedZeroMQ) msg.iscTOs.pop();
-			send(msg, r, ".RQ");
+			if (! rs.frame.iscForward(msg))
+				send(msg, r, ".RQ");
 		}
 	}
 
 	class ISCReplyer implements ZeroMQReceiverX.IHandler {
 		@Override
 		public void handle(Message msg) {
-			rs.frame.msgReturn(RS.ID4DMPROXY, msg);
+			DeployedZeroMQ r = (DeployedZeroMQ) msg.iscFROMs.pop();
+			if (! rs.frame.iscReturn(msg))
+				send(msg, r, ".RS");
 		}
 	}
 	

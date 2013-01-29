@@ -54,6 +54,16 @@ public class Framework implements AutoCloseable {
 		msg.callers.push(caller);
 		r.doForward(msg);
 	}
+	public boolean iscForward(Message msg) {
+		rs.error(isExhaust(msg), "消息[" + msg.getId() + "]已在途中超时");
+		String beanId = msg.dests.pop();
+		Routed r = deployed.get(beanId);
+		if (r != null) {
+			msg.callers.push(RS.ID4ISC);
+			r.doForward(msg);
+		}
+		return (r != null);
+	}
 	// 同步点是为同步调用而设计的
 	private long spNo = 0L; // 同步点序号
 	private Hashtable<String, SyncPoint> spTable = new Hashtable<String, SyncPoint>(); // 同步点
@@ -66,19 +76,25 @@ public class Framework implements AutoCloseable {
 		spTable.remove(sp.getKey().getId());
 	}
 	public void msgReturn(String caller, Message msg) {
+		rs.error((! iscReturn(msg)), 
+				"消息[" + msg.getId() + "]的应答迷路到达了[" + id + "]");
+	}
+	public boolean iscReturn(Message msg) {
 		String beanId = msg.callers.pop(); // 找回调用者
-		if (!msg.spKeys.empty()) { // 看看是不是我的同步点
+		if (! msg.spKeys.empty()) { // 看看是不是我的同步点
 			SyncPointKey key = msg.spKeys.lastElement();
 			if (key.isMine(beanId)) { // 是我的
 				key = msg.spKeys.pop();
 				SyncPoint sp = spTable.get(key.getId());
 				rs.error((sp == null), "消息[" + msg.getId() + "]的应答迟到");
 				sp.setReplyMsg(msg);
+				return true;
 			}
 		}
 		Routed r = deployed.get(beanId);
-		rs.error((r == null), "消息[" + msg.getId() + "]的应答迷路到达了[" + id + "]");
-		r.doReturn(msg);
+		if (r != null)
+			r.doReturn(msg);
+		return (r != null);
 	}
 	public Message msgForwardSync(String caller, String routeKey, Message msg, long timeout) {
 		SyncPoint sp = allocSyncPoint(caller, msg, timeout); // 分配同步点

@@ -32,11 +32,4 @@ public class Deployed implements Serializable {
 	public void setBeanId(String beanId) {
 		this.beanId = beanId;
 	}
-	private String flags;
-	public String getFlags() {
-		return flags;
-	}
-	public void setFlags(String flags) {
-		this.flags = flags;
-	}
 }

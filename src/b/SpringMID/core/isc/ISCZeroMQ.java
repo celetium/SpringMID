@@ -12,14 +12,12 @@ public class ISCZeroMQ extends Routed {
 	private String prefix, self;
 	private ZMQ.Context context;
 	private ZeroMQReceiverX requestReceiver, replyReceiver;
-	private DeployedZeroMQ from;
 	private RouterDomain<DeployedZeroMQ> router;
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public void start() {
 		this.router = rs.getBean("ISCRouter", RouterDomain.class);
-		from = this.router.fromX(RS.ID4ISC);
 		prefix = "ipc://" + rs.getRunDir() + "/dev/";
 		self = prefix +  rs.frame.getId() + "." + rs.getProcessId();
 		context = ZMQ.context(1);
@@ -32,8 +30,8 @@ public class ISCZeroMQ extends Routed {
 	class ISCRequester implements ZeroMQReceiverX.IHandler {
 		@Override
 		public void handle(Message msg) {
-			String beanId = msg.dests.pop();
-			rs.frame.msgForward(RS.ID4ISC, beanId, msg); // msgForward对ISC作为caller做了特别处理
+			rs.error((! rs.frame.iscForward(msg)), 
+					"消息[" + msg.getId() + "]从[ISC]到达服务器[" + rs.frame.getId() + "]但目的地不在这里");
 		}
 	}
 
@@ -49,6 +47,7 @@ public class ISCZeroMQ extends Routed {
 		rs.error(msg.dests.empty(), "消息的目的地不应该为空");
 		DeployedZeroMQ r = router.routeToX(msg.dests.lastElement());
 		msg.iscTOs.push(r);
+		DeployedZeroMQ from = this.router.fromX(RS.ID4ISC);
 		msg.iscFROMs.push(from);
 		send(msg, r, ".RQ");
 	}

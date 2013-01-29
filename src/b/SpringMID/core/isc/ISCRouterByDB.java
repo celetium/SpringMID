@@ -27,8 +27,8 @@ public class ISCRouterByDB implements RouterDomain<DeployedZeroMQ> {
 			if (! rs.isAlive(dr.getProcessId()))
 				continue;
 			if (! dr.getDomainId().equals(rs.getDomainId())) {
-				rs.error((! "1".equals(dr.getFlags())), "域间[" + RS.ID4DMPROXY + "]代理未启动");
 				setDomainProperties(dr);
+				rs.error((dr.getRequestPort() == 0), "域[" + dr.getDomainId() + "]的代理尚未启动");
 			}
 			return dr;
 		}
@@ -43,8 +43,7 @@ public class ISCRouterByDB implements RouterDomain<DeployedZeroMQ> {
 		d.setServerId(rs.frame.getId());
 		d.setBeanId(beanId);
 		d.setProcessId(rs.getProcessId());
-		if ("1".equals(d.getFlags()))
-			setDomainProperties(d);
+		setDomainProperties(d);
 		return d;
 	}
 
@@ -57,7 +56,6 @@ public class ISCRouterByDB implements RouterDomain<DeployedZeroMQ> {
 			dr.setRequestPort(Integer.parseInt(ports[0]));
 			dr.setReplyPort(Integer.parseInt(ports[1]));
 		} catch (EmptyResultDataAccessException e) {
-			throw new RuntimeException("域[" + dr.getDomainId() + "]的代理尚未启动");
 		}
 	}
 	

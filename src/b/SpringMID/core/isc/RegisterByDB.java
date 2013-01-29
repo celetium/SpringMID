@@ -16,18 +16,14 @@ public class RegisterByDB implements Register {
 		this.jdbc = jdbc;
 	}
 
-	private String flags = null;
-	// (domainId, serverId, processId, beanId)
 	@Override
 	public void started(Routed r) {
-		jdbc.update("INSERT INTO t_deployed_routed VALUES (?, ?, ?, ?, ?)",  
-				rs.getDomainId(), rs.frame.getId(), Integer.valueOf(rs.getProcessId()), r.getId(), flags);
+		jdbc.update("INSERT INTO t_deployed_routed VALUES (?, ?, ?, ?)",  
+				rs.getDomainId(), rs.frame.getId(), Integer.valueOf(rs.getProcessId()), r.getId());
 		if (r instanceof DMProxy) {
 			jdbc.update("DELETE FROM t_domain WHERE domainId = ?", rs.getDomainId());
 			DMProxy dp = (DMProxy)r;
-			jdbc.update("INSERT INTO t_domain VALUES (?, ?, ?, ?)", rs.getDomainId(), dp.getProxyProperties());
-			jdbc.update("UPDATE t_deployed_routed SET flags='1' WHERE domainId=?", rs.getDomainId());
-			flags = "1";
+			jdbc.update("INSERT INTO t_domain VALUES (?, ?)", rs.getDomainId(), dp.getProxyProperties());
 		}
 	}
 
