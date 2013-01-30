@@ -54,7 +54,7 @@ public class ISCZeroMQ extends Routed {
 
 	@Override
 	public void doReturn(Message msg) {
-		DeployedZeroMQ r = (DeployedZeroMQ) msg.iscFROMs.pop();
+		DeployedZeroMQ r = (DeployedZeroMQ) msg.iscFROMs.lastElement();
 		send(msg, r, ".RS");
 	}
 

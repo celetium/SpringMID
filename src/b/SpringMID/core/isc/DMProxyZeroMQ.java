@@ -4,7 +4,6 @@ import org.zeromq.ZMQ;
 
 import b.SpringMID.core.DMProxy;
 import b.SpringMID.core.Message;
-import b.SpringMID.core.RS;
 import b.SpringMID.core.Routed;
 
 public class DMProxyZeroMQ extends Routed implements DMProxy {
@@ -94,8 +93,10 @@ public class DMProxyZeroMQ extends Routed implements DMProxy {
 
 	@Override
 	public void stop() {
-		requestReceiver.stop();
-		replyReceiver.stop();
+		if (requestReceiver != null)
+			requestReceiver.stop();
+		if (replyReceiver != null)
+			replyReceiver.stop();
 	}
 	
 }
