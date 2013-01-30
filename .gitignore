@@ -1,0 +1,11 @@
+# Binary Files #
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# Log Files #
+.log
+.lck
