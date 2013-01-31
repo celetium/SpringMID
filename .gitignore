@@ -7,5 +7,6 @@
 *.ear
 
 # Log Files #
-.log
-.lck
+*.log
+*.lck
+*.DS_Store

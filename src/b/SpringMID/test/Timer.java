@@ -1,4 +1,4 @@
-package b.SpringMID.channel;
+package b.SpringMID.test;
 
 import b.SpringMID.core.Channel;
 import b.SpringMID.core.Message;

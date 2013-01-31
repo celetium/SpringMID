@@ -1,4 +1,4 @@
-package b.SpringMID.business;
+package b.SpringMID.test;
 
 import b.SpringMID.core.Routed;
 import b.SpringMID.core.Message;

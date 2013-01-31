@@ -16,6 +16,7 @@
 		<property name="routedList">
 			<list>
 				<value>ISC</value>
+				<value>DMPROXY1</value>
 				<value>in1</value>
 			</list>
 		</property>
@@ -24,6 +25,7 @@
 		<property name="routedList">
 			<list>
 				<value>ISC</value>
+				<value>DMPROXY2</value>
 				<value>biz-sample-1</value>
 			</list>
 		</property>
