@@ -1,6 +1,5 @@
 package b.SpringMID.core;
 
-import org.apache.commons.logging.LogFactory;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 public class Runner {
@@ -10,7 +9,6 @@ public class Runner {
 	private void run(String conf, String serverId) {
 		RS rs = RS.getInstance();
 		try {
-			rs.log = LogFactory.getLog("SpringMID");
 			if (conf == null)
 				conf = "conf/beans.xml";
 			rs.ctx = new FileSystemXmlApplicationContext(conf);

@@ -16,10 +16,7 @@
 		<property name="routedList">
 			<list>
 				<value>ISC</value>
-<<<<<<< HEAD
 				<value>DMPROXY1</value>
-=======
->>>>>>> 7cee6ec0ac8e77ac2e41ef5d84e14ebeec603052
 				<value>in1</value>
 			</list>
 		</property>
@@ -28,10 +25,7 @@
 		<property name="routedList">
 			<list>
 				<value>ISC</value>
-<<<<<<< HEAD
 				<value>DMPROXY2</value>
-=======
->>>>>>> 7cee6ec0ac8e77ac2e41ef5d84e14ebeec603052
 				<value>biz-sample-1</value>
 			</list>
 		</property>
@@ -65,11 +59,14 @@
 			<ref bean="jdbc" />
 		</property>
 	</bean>
-	<bean id="ISC" class="b.SpringMID.core.isc.ISCZeroMQ" />
-	<bean id="DMPROXY1" class="b.SpringMID.core.isc.DMProxyZeroMQ" p:replyPort="12011" />
-	<bean id="DMPROXY2" class="b.SpringMID.core.isc.DMProxyZeroMQ" p:requestPort="12012" />
-	<bean id="in1" class="b.SpringMID.channel.Timer" p:channelId="timer" />
-	<bean id="in2" class="b.SpringMID.channel.Timer" p:channelId="timer" />
-	<bean id="biz-sample-1" class="b.SpringMID.business.Sample" />
-	<bean id="out" class="b.SpringMID.channel.Core" p:channelId="core" />
+	<bean id="ISC" class="b.SpringMID.core.isc.ISCZeroMQ" lazy-init="true" />
+	<bean id="DMPROXY1" class="b.SpringMID.core.isc.DMProxyZeroMQ" p:replyPort="12011" lazy-init="true" />
+	<bean id="DMPROXY2" class="b.SpringMID.core.isc.DMProxyZeroMQ" p:requestPort="12012" lazy-init="true" />
+	<bean id="in1" class="b.SpringMID.channel.Timer" p:channelId="timer" lazy-init="true" />
+	<bean id="in2" class="b.SpringMID.channel.Timer" p:channelId="timer" lazy-init="true" />
+	<bean id="biz-sample-1" class="b.SpringMID.business.Sample" lazy-init="true" />
+	<bean id="out" class="b.SpringMID.channel.Core" p:channelId="core" lazy-init="true" />
+	<bean id="fix1" class="b.SpringMID.adapter.Parser" lazy-init="true" p:id="fix" p:pckId="FIX1" />
+	<bean id="pckconfer" class="b.SpringMID.adapter.test.PckConferByDB" lazy-init="true" />
+	<bean id="converter.fix" class="b.SpringMID.adapter.test.FixPckConverter" lazy-init="true" />
 </beans>

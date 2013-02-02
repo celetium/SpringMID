@@ -13,6 +13,7 @@ import java.net.SocketException;
 import java.util.Enumeration;
 
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.context.support.AbstractApplicationContext;
 
 import com.jezhumble.javasysmon.JavaSysMon;
@@ -25,10 +26,12 @@ public class RS {
 	private static RS _instance = new RS();
 	private RS() {
 		runDir = System.getProperty("user.dir");
-//		domainId = System.getProperty("user.name");
 		domainId = System.getProperty("domainId");
+		if (domainId == null) 
+			domainId = System.getProperty("user.name");
 		processId = new JavaSysMon().currentPid();
-		address = this.getIPAddress();
+		address = this.getIPAddress(); // 如未连接网络会报错，找不到IP地址，localhost不算。
+		log = LogFactory.getLog("SpringMID");
 	}
 	public boolean isAlive(int processId) {
 		JavaSysMon sys = new JavaSysMon();
