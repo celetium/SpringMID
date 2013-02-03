@@ -7,32 +7,51 @@ import b.SpringMID.adapter.NameValue;
 import b.SpringMID.util.XMLUtil;
 
 public class NameValueByXML implements NameValue {
-
-	private Document doc;
-	private Node root;
-	
-	public NameValueByXML() {
-		doc = XMLUtil.newDocument();
-		root = XMLUtil.newXmlNode(doc, "ROOT");
+	private Node node;
+	public NameValueByXML(Document doc) {
+		node = XMLUtil.newXmlNode(doc, "ROOT");
 	}
-	
+	public NameValueByXML(Node node) {
+		this.node = node;
+	}
 	@Override
-	public String get(String id) {
+	public NameValue getNode(String id) {
 		try {
-			return XMLUtil.getNodeText(root, id, null);
+			return new NameValueByXML(XMLUtil.getNamedChild(node, id));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
-
+	@Override
+	public String get(String id) {
+		try {
+			return XMLUtil.getNodeText(node, id, null);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 	@Override
 	public void set(String id, String value) {
-		Node node = XMLUtil.newXmlNode(root, id);
-		node.setTextContent(value);
+		Node child = XMLUtil.newXmlNode(node, id);
+		child.setTextContent(value);
+		System.out.println(XMLUtil.toString(node));
 	}
-
-	public void print() {
-		System.out.println(XMLUtil.toString(doc));
+	@Override
+	public void clearValue(boolean drop) {
+		if (drop)
+			node.getParentNode().removeChild(node);
+		else {
+			Node n = node.getFirstChild();
+			while (! n.getNodeName().equals("#text"))
+				n = n.getNextSibling();
+			if (n != null)
+				node.removeChild(n);
+		}
+	}
+	@Override
+	public NameValue getParentNode() {
+		return new NameValueByXML(node.getParentNode());
 	}
 }

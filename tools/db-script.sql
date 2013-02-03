@@ -23,3 +23,31 @@ create table T_DOMAIN
   domainId varchar(30) not null primary key,
   properties varchar(99) not null
 );
+
+drop table T_PCK;
+create table T_PCK
+(
+  groupId varchar(30) not null,
+  id varchar(30) not null,
+  name varchar(30),
+  converterId varchar(30) not null,
+  trim integer
+);
+create unique index PCK_UK on T_PCK (groupId, id);
+
+drop table T_PCK_ITEM;
+create table T_PCK_ITEM
+(
+  pckId varchar(30) not null,
+  no integer not null,
+  id varchar(30) not null,
+  repeat integer,
+  binary integer,
+  option integer,
+  trim integer,
+  ref varchar(30),
+  refAs integer,
+  defaultValue varchar(99),
+  overwriteValue varchar(99)
+);
+create unique index PCK_ITEM_UK on T_PCK_ITEM (pckId, no);

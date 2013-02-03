@@ -1,9 +1,11 @@
 package b.SpringMID.adapter.test;
 
 import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.w3c.dom.Document;
 
 import b.SpringMID.adapter.Parser;
 import b.SpringMID.core.RS;
+import b.SpringMID.util.XMLUtil;
 
 public class AdapterTester {
 
@@ -18,9 +20,10 @@ public class AdapterTester {
 			if ("0".equals(type)) {
 				Parser p = rs.ctx.getBean(id, Parser.class);
 				p.start();
-				NameValueByXML nv = new NameValueByXML();
-				p.parse(nv, "12345abc!".getBytes());
-				nv.print();
+				Document doc = XMLUtil.newDocument();
+				NameValueByXML nv = new NameValueByXML(doc);
+				p.parse(nv, "12345abc!,XT".getBytes());
+				System.out.println(XMLUtil.toString(doc));
 			}
 		} finally {
 			if (rs.ctx != null)

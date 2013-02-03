@@ -8,10 +8,17 @@ import b.SpringMID.adapter.NameValue;
 import b.SpringMID.adapter.Pck;
 import b.SpringMID.adapter.PckConverter;
 import b.SpringMID.adapter.PckItem;
-import b.SpringMID.core.RS;
-import b.SpringMID.util.Confer;
 
-public class FixPckConverter implements PckConverter {
+public class DivPckConverter implements PckConverter {
+
+	private String div;
+	public String getDiv() {
+		return div;
+	}
+
+	public void setDiv(String div) {
+		this.div = div;
+	}
 
 	@Override
 	public List<String> getPckProperties() {
@@ -20,9 +27,7 @@ public class FixPckConverter implements PckConverter {
 
 	@Override
 	public List<String> getPckItemProperties() {
-		List<String> properties = new ArrayList<String>();
-		properties.add("LENGTH");
-		return properties;
+		return new ArrayList<String>();
 	}
 
 	@Override
@@ -32,24 +37,15 @@ public class FixPckConverter implements PckConverter {
 
 	@Override
 	public PckItem newPckItem(Pck p, Hashtable<String, String> conf) {
-		FixPckItem pi = new FixPckItem();
-		Confer c = new Confer(conf);
-		pi.iLength = c.getInt("LENGTH");
-		return pi;
+		return new PckItem();
 	}
 
 	@Override
 	public void parse(Pck p, byte[] raw, NameValue root, NameValue node) {
-		int pos = 0;
-		for (int i = 0; i < p.items.size(); ++i) {
-			FixPckItem pi = (FixPckItem)p.items.get(i);
-			byte[] b = new byte[pi.iLength];
-			System.arraycopy(raw, pos, b, 0, pi.iLength);
-			if (pi.ref != null)
-				node.set(pi.id, RS.getInstance().toBase64(b));
-			else
-				node.set(pi.id, new String(b));
-			pos += pi.iLength;
+		String s = new String(raw);
+		String[] parts = s.split(div);
+		for (int i = 0; i < p.items.size() && i < parts.length; ++i) {
+			node.set(p.items.get(i).id, parts[i]);
 		}
 	}
 

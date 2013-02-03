@@ -66,7 +66,12 @@
 	<bean id="in2" class="b.SpringMID.channel.Timer" p:channelId="timer" lazy-init="true" />
 	<bean id="biz-sample-1" class="b.SpringMID.business.Sample" lazy-init="true" />
 	<bean id="out" class="b.SpringMID.channel.Core" p:channelId="core" lazy-init="true" />
-	<bean id="fix1" class="b.SpringMID.adapter.Parser" lazy-init="true" p:id="fix" p:pckId="FIX1" />
-	<bean id="pckconfer" class="b.SpringMID.adapter.test.PckConferByDB" lazy-init="true" />
+	<bean id="fix1" class="b.SpringMID.adapter.Parser" lazy-init="true" p:id="test1" p:pckId="FIX1" />
+	<bean id="pckconfer" class="b.SpringMID.adapter.test.PckConferByDB" lazy-init="true" >
+		<property name="jdbc">
+			<ref bean="jdbc" />
+		</property>
+	</bean>
 	<bean id="converter.fix" class="b.SpringMID.adapter.test.FixPckConverter" lazy-init="true" />
+	<bean id="converter.div" class="b.SpringMID.adapter.test.DivPckConverter" lazy-init="true" p:div="," />
 </beans>
