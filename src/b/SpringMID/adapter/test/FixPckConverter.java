@@ -3,7 +3,9 @@ package b.SpringMID.adapter.test;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Vector;
 
+import b.SpringMID.adapter.Constants;
 import b.SpringMID.adapter.NameValue;
 import b.SpringMID.adapter.Pck;
 import b.SpringMID.adapter.PckConverter;
@@ -55,7 +57,37 @@ public class FixPckConverter implements PckConverter {
 
 	@Override
 	public byte[] render(Pck p, NameValue root, NameValue node) {
-		return null;
+		Vector<byte[]> parts = new Vector<byte[]>();
+		int totalLength = 0;
+		for (int i = 0; i < p.items.size(); ++i) {
+			FixPckItem pi = (FixPckItem)p.items.get(i);
+			byte[] b = new byte[pi.iLength];
+			totalLength += pi.iLength;
+			NameValue nv = node.getNode(pi.id);
+			String value = (nv != null) ? nv.get() : null;
+			pack(b, value, pi.iLength, pi.ref);
+			if (pi.ref != null)
+				nv.clearValue(pi.iRefAs == Constants.REF_AS_SIBLING);
+			parts.add(b);
+		}
+		byte[] raw = new byte[totalLength];
+		for (int i = 0, pos = 0; i < parts.size(); ++i) {
+			byte[] b = parts.get(i);
+			System.arraycopy(b, 0, raw, pos, b.length);
+			pos += b.length;
+		}
+		return raw;
+	}
+
+	private void pack(byte[] buf, String value, int iLength, String ref) {
+		int iMin = 0;
+		if (value != null) {
+			byte[] v = (ref != null) ? RS.getInstance().fromBase64(value) : value.getBytes();
+			iMin = (iLength > v.length) ? v.length : iLength;
+			System.arraycopy(v, 0, buf, 0, iMin);
+		}
+		for (int i = iMin; i < iLength; ++i)
+			buf[i] = 0x20;
 	}
 
 }

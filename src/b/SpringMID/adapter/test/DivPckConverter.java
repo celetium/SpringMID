@@ -51,7 +51,16 @@ public class DivPckConverter implements PckConverter {
 
 	@Override
 	public byte[] render(Pck p, NameValue root, NameValue node) {
-		return null;
+		String s = "";
+		for (int i = 0; i < p.items.size(); ++i) {
+			String value = node.get(p.items.get(i).id);
+			if (value == null)
+				value = "";
+			System.out.println(i + ": " + value);
+			s = s + value + div;
+		}
+		System.out.println("div: " + s);
+		return s.getBytes();
 	}
 
 }

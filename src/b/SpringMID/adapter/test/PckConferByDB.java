@@ -9,8 +9,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
 import b.SpringMID.adapter.Constants;
-import b.SpringMID.adapter.Parser;
 import b.SpringMID.adapter.Pck;
+import b.SpringMID.adapter.PckAdapter;
 import b.SpringMID.adapter.PckConfer;
 import b.SpringMID.adapter.PckConverter;
 import b.SpringMID.adapter.PckItem;
@@ -69,9 +69,9 @@ public class PckConferByDB implements PckConfer {
 	}
 	
 	class PckRowHandler implements RowCallbackHandler {
-		Parser parser;
-		PckRowHandler(Parser parser) {
-			this.parser = parser;
+		PckAdapter adapter;
+		PckRowHandler(PckAdapter adapter) {
+			this.adapter = adapter;
 		}
 		@Override
 		public void processRow(ResultSet r) throws SQLException {
@@ -89,12 +89,12 @@ public class PckConferByDB implements PckConfer {
 			p.converter = c;
 			PckItemRowHandler itemHndlr = new PckItemRowHandler(c, p);
 			jdbc.query("SELECT * FROM t_pck_item WHERE pckId=?", itemHndlr, p.id);
-			parser.putPck(p);
+			adapter.putPck(p);
 		}
 	}
 	@Override
-	public void configure(Parser parser, String groupId) {
-		PckRowHandler pckHndlr = new PckRowHandler(parser);
+	public void configure(PckAdapter adapter, String groupId) {
+		PckRowHandler pckHndlr = new PckRowHandler(adapter);
 		jdbc.query("SELECT * FROM t_pck WHERE groupId=?", pckHndlr, groupId);
 	}
 

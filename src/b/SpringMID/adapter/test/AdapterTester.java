@@ -4,6 +4,7 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.w3c.dom.Document;
 
 import b.SpringMID.adapter.Parser;
+import b.SpringMID.adapter.Renderer;
 import b.SpringMID.core.RS;
 import b.SpringMID.util.XMLUtil;
 
@@ -23,6 +24,11 @@ public class AdapterTester {
 				Document doc = XMLUtil.newDocument();
 				NameValueByXML nv = new NameValueByXML(doc);
 				p.parse(nv, "12345abc!,XT".getBytes());
+				System.out.println(XMLUtil.toString(doc));
+				Renderer r = rs.ctx.getBean(id+".rs", Renderer.class);
+				r.start();
+				byte[] raw = r.render(nv);
+				System.out.println("rs: " + new String(raw));
 				System.out.println(XMLUtil.toString(doc));
 			}
 		} finally {

@@ -1,15 +1,8 @@
 package b.SpringMID.adapter;
 
-import java.util.Hashtable;
-
-import b.SpringMID.core.RS;
-
-public class Parser {
-	private RS rs = RS.getInstance();
+public final class Parser extends PckAdapter {
 	public void start() {
-		if (confer == null)
-			confer = rs.getBean("pckconfer", PckConfer.class);
-		confer.configure(this, id);
+		super.start();
 		if (wrapper == null && wrapperId != null)
 			wrapper = rs.getBean(wrapperId, ParserWrapper.class);
 	}
@@ -24,6 +17,8 @@ public class Parser {
 			parsingPckId = pckId;
 		rs.error((parsingPckId == null), "未提供解析所需之入口报文标识");
 		this.parse(parsingPckId, parsingRaw, root, root);
+		if (wrapper != null)
+			wrapper.post(root);
 	}
 	private void parse(String parsingPckId, byte[] parsingRaw, NameValue root, NameValue node) {
 		Pck p = pcks.get(parsingPckId);
@@ -35,50 +30,18 @@ public class Parser {
 			rs.error(((item.iOption | Constants.USE_FOR_PARSING) != 0 && value == null), "域[" + item.id + "]是必需的");
 			byte[] valueRaw = rs.fromBase64(value);
 			NameValue child = node.getNode(item.id);
-			boolean drop = ((item.iRefAs & Constants.REF_AS_SIBLING) != 0);
+			boolean drop = (item.iRefAs == Constants.REF_AS_SIBLING);
 			NameValue parent = drop ? node : child;
 			this.parse(item.ref, valueRaw, root, parent);
 			child.clearValue(drop);
 		}
 	}
-	private Hashtable<String, Pck> pcks = new Hashtable<String, Pck>();
-	public void putPck(Pck p) {
-		pcks.put(p.id, p);
-	}
 	// 依赖注入的属性
-	private PckConfer confer;
-	public PckConfer getConfer() {
-		return confer;
-	}
-	public void setConfer(PckConfer confer) {
-		this.confer = confer;
-	}
-	private String id;
-	public String getId() {
-		return id;
-	}
-	public void setId(String id) {
-		this.id = id;
-	}
-	private String pckId;
-	public String getPckId() {
-		return pckId;
-	}
-	public void setPckId(String pckId) {
-		this.pckId = pckId;
-	}
 	private ParserWrapper wrapper;
 	public ParserWrapper getWrapper() {
 		return wrapper;
 	}
 	public void setWrapper(ParserWrapper wrapper) {
 		this.wrapper = wrapper;
-	}
-	private String wrapperId;
-	public String getWrapperId() {
-		return wrapperId;
-	}
-	public void setWrapperId(String wrapperId) {
-		this.wrapperId = wrapperId;
 	}
 }

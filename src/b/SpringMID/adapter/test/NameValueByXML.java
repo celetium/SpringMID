@@ -33,10 +33,30 @@ public class NameValueByXML implements NameValue {
 		}
 	}
 	@Override
+	public String get() {
+		return node.getTextContent();
+	}
+	@Override
 	public void set(String id, String value) {
-		Node child = XMLUtil.newXmlNode(node, id);
-		child.setTextContent(value);
-		System.out.println(XMLUtil.toString(node));
+		Node child = XMLUtil.getNamedChild(node, id);
+		if (child == null)
+			child = XMLUtil.newXmlNode(node, id);
+		if (value != null && value.length() > 0)
+			child.setTextContent(value);
+	}
+	@Override
+	public void set(String value) {
+		if (value != null && value.length() > 0) {
+			if (! node.hasChildNodes())
+				node.setTextContent(value);
+			else {
+				Node n = node.getFirstChild();
+				while (! n.getNodeName().equals("#text"))
+					n = n.getNextSibling();
+				if (n != null)
+					n.setNodeValue(value);
+			}
+		}
 	}
 	@Override
 	public void clearValue(boolean drop) {
@@ -47,11 +67,16 @@ public class NameValueByXML implements NameValue {
 			while (! n.getNodeName().equals("#text"))
 				n = n.getNextSibling();
 			if (n != null)
-				node.removeChild(n);
+				n.setNodeValue("");
 		}
 	}
 	@Override
 	public NameValue getParentNode() {
 		return new NameValueByXML(node.getParentNode());
+	}
+	@Override
+	public NameValue nextSiblingNode() {
+		Node sibling = node.getNextSibling();
+		return (sibling == null) ? null : new NameValueByXML(sibling);
 	}
 }
