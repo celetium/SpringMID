@@ -67,6 +67,7 @@
 	<bean id="biz-sample-1" class="b.SpringMID.business.Sample" lazy-init="true" />
 	<bean id="out" class="b.SpringMID.channel.Core" p:channelId="core" lazy-init="true" />
 	<bean id="fix1" class="b.SpringMID.adapter.Parser" lazy-init="true" p:id="test1" p:pckId="FIX1" />
+	<bean id="fix1.rs" class="b.SpringMID.adapter.Renderer" lazy-init="true" p:id="test1" p:pckId="FIX1" />
 	<bean id="pckconfer" class="b.SpringMID.adapter.test.PckConferByDB" lazy-init="true" >
 		<property name="jdbc">
 			<ref bean="jdbc" />
