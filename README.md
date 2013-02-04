@@ -1,4 +1,10 @@
 SpringMID
 =========
 
-An application developing platform powered by Spring
+一个基于Spring建造的应用开发平台。其主要模块包括：
+
+1、核心框架 : 实现一个小型的消息传递中间件，可以跨进程(server)、跨用户(domain)、跨机器(host/ip)传递消息。支持基于消息的同步/异步调用、消息前传/后传。
+
+2、报文解析 : 实现一个报文解析框架(Parser/Renderer)和几个常用的报文转换子(converter)，可以独立于核心框架使用。
+
+3、业务框架 : 实现一个多步骤的交易处理框架，支持自动冲正处理，为应用开发提供更多便利设施。
