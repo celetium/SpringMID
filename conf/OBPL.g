@@ -1,4 +1,4 @@
-grammar obp;
+grammar OBPL;
 
 options {
     backtrack=true;
@@ -7,7 +7,7 @@ options {
 }
 
 @header {
-package obp;
+package obpl;
 }
 
 @members {
@@ -39,7 +39,7 @@ public String getTokenErrorDisplay(Token t) {
 }
 
 @lexer::header {
-package bp;
+package obpl;
 }
 
 @lexer::members {
@@ -50,9 +50,9 @@ public String getErrorHeader(RecognitionException e) {
 }
 
 compilationUnit
-	: packageDeclaration
+	: EOL* packageDeclaration
 	 (importDeclaration)*
-	 (typeDeclaration)? 
+	 (typeDeclaration)* EOF
 ;
 
 packageDeclaration
@@ -60,11 +60,7 @@ packageDeclaration
 ;
 
 importDeclaration
-	: 'import' qualifiedName EOL
-;
-
-qualifiedName
-	: ID ('.' ID)*
+	: ('import' qualifiedName)? EOL
 ;
 
 typeDeclaration
@@ -73,27 +69,63 @@ typeDeclaration
 ;
 
 boDeclaration
-	: 'bo' ID ('extends' ID)? EOL
+	: 'bo' ID ('extends' ID)? EOL+
 	   boBody
-	  'end'
+	  'end' EOL+
 ;
 
 bpDeclaration
-	: 'bp' ID ('::' ID)? EOL
+	: 'bp' ID ('::' ID)? EOL+
 	   bpBody
-	  'end'
+	  'end' EOL+
 ;
 
 boBody
-	: (fieldDeclaration)*
-;
-
-bpBody
-	: (expression)*
+	: (fieldDeclaration
+	|  keyDeclaration
+	|  refDeclaration)+
 ;
 
 fieldDeclaration
-	: ID (fieldDefinition1 | fieldDefinition2 | fieldInfer)? EOL
+	: ID (fieldDefinition1 | fieldDefinition2 | fieldInfer)? EOL+
+;
+
+keyDeclaration
+	: ('pk'|'uk'|'dk') ID (',' ID)* EOL+
+;
+
+refDeclaration
+	: ID ':' ID ('if' boolExpression)? EOL+
+;
+
+bpBody
+	: (statement)*
+;
+
+statement
+	: expression ('if' boolExpression)? ('for' idEnumeration)? EOL+
+	| caseStatement
+	| loopStatement
+;
+
+caseStatement
+	:  'if' boolExpression EOL+
+	   (statement)*
+	  ('else' 'if' boolExpression EOL+
+	   (statement)*)*
+	  ('else' EOL+
+	   (statement)*)?
+	   'end' EOL+
+;
+
+loopStatement
+	: 'loop' (idAbsPath)? ('if' boolExpression)? ('for' idEnumeration)? EOL+
+	  (statement)*
+	  'end' EOL+
+;
+
+qualifiedName
+	: ID ('.' ID)*
 ;
 
 fieldDefinition1
@@ -105,11 +137,11 @@ fieldDefinition2
 ;
 
 fieldInfer
-	: '=' expression
+	: '=' boolExpression ('if' boolExpression)? ('for' idEnumeration)?
 ;
 
 expression
-	: boolExpression ('=' expression)? ('if' boolExpression)? ('for' idEnumeration)?
+	: boolExpression ('=' expression)?
 ; 
 
 idEnumeration
@@ -164,7 +196,7 @@ unaryExpression
 	: '-' unaryExpression
 	| unaryExpressionNotPlusMinus
 ;
-	
+
 unaryExpressionNotPlusMinus
 	: '!' unaryExpression
 	| primary
@@ -193,11 +225,11 @@ arguments
 ;
 
 expressionList 
-    : expressionWithAssign (',' expressionWithAssign)*
+    : expressionWithAssign (',' EOL? expressionWithAssign)*
 ;
 
 expressionWithAssign
-	: ID '=' expression EOL
+	: ID '=' expression
 ;
 
 literal 
@@ -219,11 +251,11 @@ FLOAT
 ;
     
 COMMENT
-    : '//' ~('\n'|'\r')* '\r'? '\n' {$channel=HIDDEN;}
+    : '//' ~('\n'|'\r')* {$channel=HIDDEN;}
 ;
 
 WS
-    : ( ' ' | '\t' ) {$channel=HIDDEN;}
+    : (' '|'\t') {skip();}
 ;
 
 EOL	: ('\r')? '\n'
