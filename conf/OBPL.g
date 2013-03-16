@@ -7,7 +7,7 @@ compilationUnit
 ;
 
 packageDeclaration
-	: 'app' qualifiedName EOL
+	: APP qualifiedName EOL
 ;
 
 importDeclaration
@@ -110,7 +110,11 @@ orExpression
 ;
 
 andExpression
-	: compareExpression ('and' compareExpression)*
+	: notExpression ('and' notExpression)*
+;
+
+notExpression
+	: 'not'? compareExpression
 ;
 
 compareExpression
@@ -146,13 +150,7 @@ multiplicativeOp
 ;
 
 unaryExpression
-	: '-' unaryExpression
-	| unaryExpressionNotPlusMinus
-;
-
-unaryExpressionNotPlusMinus
-	: '!' unaryExpression
-	| primary
+	: '-'? primary
 ;
 
 primary 
@@ -219,6 +217,9 @@ STRING
     : '"' ( ESC_SEQ | ~('\\'|'"') )* '"'
 ;
 
+APP :	'app'
+	;
+	
 fragment
 EXPONENT
     : ('e'|'E') ('+'|'-')? ('0'..'9')+

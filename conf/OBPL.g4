@@ -8,11 +8,11 @@ compilationUnit
 ;
 
 packageDeclaration
-	: APP qualifiedName EOL
+	: 'app' qualifiedName EOL
 ;
 
 importDeclaration
-	: (IMPORT qualifiedName)? EOL
+	: ('import' qualifiedName)? EOL
 ;
 
 typeDeclaration
@@ -21,15 +21,15 @@ typeDeclaration
 ;
 
 boDeclaration
-	: BO ID (EXTENDS ID)? EOL+
+	: 'bo' ID ('extends' ID)? EOL+
 	  boBody
-	  END EOL+
+	  'end' EOL+
 ;
 
 bpDeclaration
-	: BP ID (COLONCOLON ID)? EOL+
+	: 'bp' ID ('::' ID)? EOL+
 	  bpBody
-	  END EOL+
+	  'end' EOL+
 ;
 
 boBody
@@ -43,11 +43,11 @@ fieldDeclaration
 ;
 
 keyDeclaration
-	: (PK|UK|DK) ID (COMMA ID)* EOL+
+	: ('pk'|'uk'|'dk') ID (',' ID)* EOL+
 ;
 
 refDeclaration
-	: ID COLON ID (IF boolExpression)? EOL+
+	: ID ':' ID ('if' boolExpression)? EOL+
 ;
 
 bpBody
@@ -55,77 +55,77 @@ bpBody
 ;
 
 statement
-	: expression (IF boolExpression)? (FOR idEnumeration)? EOL+
+	: expression ('if' boolExpression)? ('for' idEnumeration)? EOL+
 	| caseStatement
 	| loopStatement
-	| BREAK EOL+
-	| RETURN EOL+
+	| 'break' EOL+
+	| 'return' EOL+
 ;
 
 caseStatement
-	: IF boolExpression EOL+
+	: 'if' boolExpression EOL+
 	 (statement)*
-	 (ELSE IF boolExpression EOL+
+	 ('else' 'if' boolExpression EOL+
 	 (statement)*)*
-	 (ELSE EOL+
+	 ('else' EOL+
 	 (statement)*)?
-	  END EOL+
+	  'end' EOL+
 ;
 
 loopStatement
-	: LOOP (idAbsPath)? (IF boolExpression)? (FOR idEnumeration)? EOL+
+	: 'loop' (idAbsPath)? ('if' boolExpression)? ('for' idEnumeration)? EOL+
 	 (statement)*
-	  END EOL+
+	  'end' EOL+
 ;
 
 qualifiedName
-	: ID (DOT ID)*
+	: ID ('.' ID)*
 ;
 
 fieldDefinition1
-	: NULL
+	: 'null'
 ;
 
 fieldDefinition2
-	: DEFAULT expression
+	: 'default' expression
 ;
 
 fieldInfer
-	: ASSIGN boolExpression (IF boolExpression)? (FOR idEnumeration)?
+	: '=' boolExpression ('if' boolExpression)? ('for' idEnumeration)?
 ;
 
 expression
-	: boolExpression (ASSIGN expression)?
+	: boolExpression ('=' expression)?
 ; 
 
 idEnumeration
-	: ENUMBEGIN ID (COMMA ID)* ENUMEND
+	: '[' ID (',' ID)* ']'
 ;
 
 boolExpression
-	: orExpression (ASK expression COLON boolExpression)?
+	: orExpression ('?' expression ':' boolExpression)?
 ;
 
 orExpression
-	: andExpression (OR andExpression)*
+	: andExpression ('or' andExpression)*
 ;
 
 andExpression
-	: notExpression (AND notExpression)*
+	: notExpression ('and' notExpression)*
 ;
 
 notExpression
-	: NOT? compareExpression
+	: ('not')? compareExpression
 ;
 
 compareExpression
 	: additiveExpression (compareOp additiveExpression)*
-	| idAbsPath IS NOT? NULL
-	| EXISTS idAbsPath
+	| idAbsPath 'is' ('not')? 'null'
+	| 'exists' idAbsPath
 ;
 
 compareOp
-	: LE | GE | LT | GT | EQ | NE
+	: '<=' | '>=' | '<' | '>' | '==' | '!='
 ;
 
 additiveExpression
@@ -133,7 +133,7 @@ additiveExpression
 ;
 
 additiveOp
-	: ADD | MINUS
+	: '+' | '-'
 ;
 	
 multiplicativeExpression
@@ -141,22 +141,22 @@ multiplicativeExpression
 ;
 
 multiplicativeOp
-	: MULTI | DIV | MOD
+	: '*' | '/' | '%'
 ;
 
 unaryExpression
-	: MINUS? primary
+	: ('-')? primary
 ;
 
 primary 
-	:  PARBEGIN boolExpression PAREND           
+	:  '(' boolExpression ')'           
 	|  idAbsPath (arguments)?
-	|  TUPLEBEGIN boolExpression? (COMMA boolExpression)* TUPLEEND
+	|  '{' boolExpression? (',' boolExpression)* '}'
 	|  literal
 ;
 
 idAbsPath
-	: idWithIdentifier (DOT idWithIdentifier)*
+	: idWithIdentifier ('.' idWithIdentifier)*
 ;
 
 idWithIdentifier
@@ -164,19 +164,19 @@ idWithIdentifier
 ;
 
 identifierSuffix 
-	: ENUMBEGIN expression ENUMEND
+	: '[' expression ']'
 ;
 
 arguments
-	: PARBEGIN (expressionList)? PAREND
+	: '(' (expressionList)? ')'
 ;
 
 expressionList 
-	: expressionWithAssign (COMMA EOL? expressionWithAssign)*
+	: expressionWithAssign (',' EOL? expressionWithAssign)*
 ;
 
 expressionWithAssign
-	: ID ASSIGN expression
+	: ID '=' expression
 ;
 
 literal 
@@ -211,186 +211,6 @@ EOL
 
 STRING
 	: '"' ( ESC_SEQ | ~('\\'|'"') )* '"'
-;
-
-APP
-	: 'app'
-;
-
-IMPORT
-	: 'import'
-;
-
-BO
-	: 'bo'
-;
-
-BP
-	: 'bp'
-;
-
-EXTENDS
-	: 'extends'
-;
-
-COLON
-	: ':'
-;
-
-COLONCOLON
-	: '::'
-;
-
-IF
-	: 'if'
-;
-
-ELSE
-	: 'else'
-;
-
-END
-	: 'end'
-;
-
-PK
-	: 'pk'
-;
-
-UK
-	: 'uk'
-;
-
-DK
-	: 'dk'
-;
-
-COMMA
-	: ','
-;
-
-FOR
-	: 'for'
-;
-
-BREAK
-	: 'break'
-;
-
-RETURN
-	: 'return'
-;
-
-LOOP
-	: 'loop'
-;
-
-DOT
-	: '.'
-;
-
-ASSIGN
-	: '='
-;
-
-DEFAULT
-	: 'default'
-;
-
-NULL
-	: 'null'
-;
-
-EQ
-	: '=='
-;
-
-LT
-	: '<'
-;
-
-LE
-	: '<='
-;
-
-GT
-	: '>'
-;
-
-GE
-	: '>='
-;
-
-NE
-	: '!='
-;
-
-OR
-	: 'or'
-;
-
-AND
-	: 'and'
-;
-
-NOT
-	: 'not'
-;
-
-ASK
-	: '?'
-;
-
-ENUMBEGIN
-	: '['
-;
-
-ENUMEND
-	: ']'
-;
-
-TUPLEBEGIN
-	: '{'
-;
-
-TUPLEEND
-	: '}'
-;
-
-ADD
-	: '+'
-;
-
-MINUS
-	: '-'
-;
-
-MULTI
-	: '*'
-;
-
-DIV
-	: '/'
-;
-
-MOD
-	: '%'
-;
-
-PARBEGIN
-	: '('
-;
-
-PAREND
-	: ')'
-;
-
-IS
-	: 'is'
-;
-
-EXISTS
-	: 'exists'
 ;
 
 fragment
