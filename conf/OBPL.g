@@ -1,54 +1,5 @@
 grammar OBPL;
 
-options {
-    backtrack=true;
-    memoize=true;
-    output=AST;
-}
-
-@header {
-package obpl;
-}
-
-@members {
-
-public String getErrorHeader(RecognitionException e) {
-    return getSourceName()+":"+e.line+":"+(e.charPositionInLine+1)+":";
-}
-	
-public String getErrorMessage(RecognitionException e, String[] tokenNames) {
-    List stack = getRuleInvocationStack(e, this.getClass().getName());
-    String msg = null;
-    if (e instanceof NoViableAltException) {
-        NoViableAltException nvae = (NoViableAltException) e;
-        msg = " no viable alt; token="+e.token+
-              " (decision="+nvae.decisionNumber+
-              " state "+nvae.stateNumber+")"+
-              " decision=<<"+nvae.grammarDecisionDescription+">>";
-    }
-    else {
-        msg = super.getErrorMessage(e, tokenNames);
-    }
-    return stack+" "+msg;
-}
-	    
-public String getTokenErrorDisplay(Token t) {
-    return t.toString();
-}
-
-}
-
-@lexer::header {
-package obpl;
-}
-
-@lexer::members {
-public String getErrorHeader(RecognitionException e) {
-    return getSourceName()+":"+e.line+":"+(e.charPositionInLine+1)+":";
-}
-
-}
-
 compilationUnit
 	: EOL* packageDeclaration
 	 (importDeclaration)*
@@ -103,9 +54,11 @@ bpBody
 ;
 
 statement
-	: expression ('if' boolExpression)? ('for' idEnumeration)? EOL+
-	| caseStatement
-	| loopStatement
+	:  expression ('if' boolExpression)? ('for' idEnumeration)? EOL+
+	|  caseStatement
+	|  loopStatement
+	| 'break' EOL+
+	| 'return' EOL+
 ;
 
 caseStatement
@@ -203,8 +156,9 @@ unaryExpressionNotPlusMinus
 ;
 
 primary 
-    :  '(' expression ')'           
+    :  '(' boolExpression ')'           
     |   idAbsPath (arguments)?
+    |  '{' boolExpression? (',' boolExpression)* '}'
     |   literal
 ;
 
@@ -251,7 +205,7 @@ FLOAT
 ;
     
 COMMENT
-    : '//' ~('\n'|'\r')* {$channel=HIDDEN;}
+    : '//' ~('\n'|'\r')* {skip();}
 ;
 
 WS
