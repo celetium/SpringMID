@@ -1,5 +1,8 @@
 grammar OBPL;
 
+// In current directory do:
+// java -jar ../../../../../lib/antlr-4.0-complete.jar -package b.SpringMID.antlr.obpl OBPL.g4
+
 compilationUnit
 	: EOL*
 	  packageDeclaration
