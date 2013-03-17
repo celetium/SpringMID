@@ -4,15 +4,15 @@ compilationUnit
 	: EOL*
 	  packageDeclaration
 	 (importDeclaration)*
-	 (typeDeclaration)* EOF
+	 (typeDeclaration)+ EOF
 ;
 
 packageDeclaration
-	: 'app' qualifiedName EOL
+	: APP qualifiedName EOL
 ;
 
 importDeclaration
-	: ('import' qualifiedName)? EOL
+	: (IMPORT qualifiedName)? EOL
 ;
 
 typeDeclaration
@@ -21,15 +21,15 @@ typeDeclaration
 ;
 
 boDeclaration
-	: 'bo' ID ('extends' ID)? EOL+
+	: BO ID (EXTENDS ID)? EOL+
 	  boBody
-	  'end' EOL+
+	  END EOL+
 ;
 
 bpDeclaration
-	: 'bp' ID ('::' ID)? EOL+
+	: BP ID (COLONCOLON ID)? EOL+
 	  bpBody
-	  'end' EOL+
+	  END EOL+
 ;
 
 boBody
@@ -43,11 +43,11 @@ fieldDeclaration
 ;
 
 keyDeclaration
-	: ('pk'|'uk'|'dk') ID (',' ID)* EOL+
+	: (PK|UK|DK) ID (COMMA ID)* EOL+
 ;
 
 refDeclaration
-	: ID ':' ID ('if' boolExpression)? EOL+
+	: ID COLON ID (IF boolExpression)? EOL+
 ;
 
 bpBody
@@ -55,77 +55,77 @@ bpBody
 ;
 
 statement
-	: expression ('if' boolExpression)? ('for' idEnumeration)? EOL+
+	: expression (IF boolExpression)? (FOR idEnumeration)? EOL+
 	| caseStatement
 	| loopStatement
-	| 'break' EOL+
-	| 'return' EOL+
+	| BREAK EOL+
+	| RETURN EOL+
 ;
 
 caseStatement
-	: 'if' boolExpression EOL+
+	: IF boolExpression EOL+
 	 (statement)*
-	 ('else' 'if' boolExpression EOL+
+	 (ELSE IF boolExpression EOL+
 	 (statement)*)*
-	 ('else' EOL+
+	 (ELSE EOL+
 	 (statement)*)?
-	  'end' EOL+
+	  END EOL+
 ;
 
 loopStatement
-	: 'loop' (idAbsPath)? ('if' boolExpression)? ('for' idEnumeration)? EOL+
+	: LOOP (idAbsPath)? (IF boolExpression)? (FOR idEnumeration)? EOL+
 	 (statement)*
-	  'end' EOL+
+	  END EOL+
 ;
 
 qualifiedName
-	: ID ('.' ID)*
+	: ID (DOT ID)*
 ;
 
 fieldDefinition1
-	: 'null'
+	: NULL
 ;
 
 fieldDefinition2
-	: 'default' expression
+	: DEFAULT expression
 ;
 
 fieldInfer
-	: '=' boolExpression ('if' boolExpression)? ('for' idEnumeration)?
+	: ASSIGN boolExpression (IF boolExpression)? (FOR idEnumeration)?
 ;
 
 expression
-	: boolExpression ('=' expression)?
+	: boolExpression (ASSIGN expression)?
 ; 
 
 idEnumeration
-	: '[' ID (',' ID)* ']'
+	: ENUMBEGIN ID (COMMA ID)* ENUMEND
 ;
 
 boolExpression
-	: orExpression ('?' expression ':' boolExpression)?
+	: orExpression (ASK expression COLON boolExpression)?
 ;
 
 orExpression
-	: andExpression ('or' andExpression)*
+	: andExpression (OR andExpression)*
 ;
 
 andExpression
-	: notExpression ('and' notExpression)*
+	: notExpression (AND notExpression)*
 ;
 
 notExpression
-	: ('not')? compareExpression
+	: NOT? compareExpression
 ;
 
 compareExpression
 	: additiveExpression (compareOp additiveExpression)*
-	| idAbsPath 'is' ('not')? 'null'
-	| 'exists' idAbsPath
+	| idAbsPath IS NOT? NULL
+	| EXISTS idAbsPath
 ;
 
 compareOp
-	: '<=' | '>=' | '<' | '>' | '==' | '!='
+	: LE | GE | LT | GT | EQ | NE
 ;
 
 additiveExpression
@@ -133,7 +133,7 @@ additiveExpression
 ;
 
 additiveOp
-	: '+' | '-'
+	: ADD | MINUS
 ;
 	
 multiplicativeExpression
@@ -141,22 +141,22 @@ multiplicativeExpression
 ;
 
 multiplicativeOp
-	: '*' | '/' | '%'
+	: MULTI | DIV | MOD
 ;
 
 unaryExpression
-	: ('-')? primary
+	: MINUS? primary
 ;
 
 primary 
-	:  '(' boolExpression ')'           
+	:  PARBEGIN boolExpression PAREND           
 	|  idAbsPath (arguments)?
-	|  '{' boolExpression? (',' boolExpression)* '}'
+	|  TUPLEBEGIN boolExpression? (COMMA boolExpression)* TUPLEEND
 	|  literal
 ;
 
 idAbsPath
-	: idWithIdentifier ('.' idWithIdentifier)*
+	: idWithIdentifier (DOT idWithIdentifier)*
 ;
 
 idWithIdentifier
@@ -164,23 +164,203 @@ idWithIdentifier
 ;
 
 identifierSuffix 
-	: '[' expression ']'
+	: ENUMBEGIN expression ENUMEND
 ;
 
 arguments
-	: '(' (expressionList)? ')'
+	: PARBEGIN (expressionList)? PAREND
 ;
 
 expressionList 
-	: expressionWithAssign (',' EOL? expressionWithAssign)*
+	: expressionWithAssign (COMMA EOL? expressionWithAssign)*
 ;
 
 expressionWithAssign
-	: ID '=' expression
+	: ID ASSIGN expression
 ;
 
 literal 
 	: INT | FLOAT | STRING
+;
+
+APP
+	: 'app'
+;
+
+IMPORT
+	: 'import'
+;
+
+BO
+	: 'bo'
+;
+
+BP
+	: 'bp'
+;
+
+EXTENDS
+	: 'extends'
+;
+
+COLON
+	: ':'
+;
+
+COLONCOLON
+	: '::'
+;
+
+IF
+	: 'if'
+;
+
+ELSE
+	: 'else'
+;
+
+END
+	: 'end'
+;
+
+PK
+	: 'pk'
+;
+
+UK
+	: 'uk'
+;
+
+DK
+	: 'dk'
+;
+
+COMMA
+	: ','
+;
+
+FOR
+	: 'for'
+;
+
+BREAK
+	: 'break'
+;
+
+RETURN
+	: 'return'
+;
+
+LOOP
+	: 'loop'
+;
+
+DOT
+	: '.'
+;
+
+ASSIGN
+	: '='
+;
+
+DEFAULT
+	: 'default'
+;
+
+NULL
+	: 'null'
+;
+
+EQ
+	: '=='
+;
+
+LT
+	: '<'
+;
+
+LE
+	: '<='
+;
+
+GT
+	: '>'
+;
+
+GE
+	: '>='
+;
+
+NE
+	: '!='
+;
+
+OR
+	: 'or'
+;
+
+AND
+	: 'and'
+;
+
+NOT
+	: 'not'
+;
+
+ASK
+	: '?'
+;
+
+ENUMBEGIN
+	: '['
+;
+
+ENUMEND
+	: ']'
+;
+
+TUPLEBEGIN
+	: '{'
+;
+
+TUPLEEND
+	: '}'
+;
+
+ADD
+	: '+'
+;
+
+MINUS
+	: '-'
+;
+
+MULTI
+	: '*'
+;
+
+DIV
+	: '/'
+;
+
+MOD
+	: '%'
+;
+
+PARBEGIN
+	: '('
+;
+
+PAREND
+	: ')'
+;
+
+IS
+	: 'is'
+;
+
+EXISTS
+	: 'exists'
 ;
 
 ID
