@@ -2,12 +2,16 @@
 package b.SpringMID.antlr.obpl;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.ErrorNode;
 
 public class OBPLBaseListener implements OBPLListener {
 	@Override public void enterExpression(OBPLParser.ExpressionContext ctx) { }
 	@Override public void exitExpression(OBPLParser.ExpressionContext ctx) { }
+
+	@Override public void enterItemAttribute(OBPLParser.ItemAttributeContext ctx) { }
+	@Override public void exitItemAttribute(OBPLParser.ItemAttributeContext ctx) { }
 
 	@Override public void enterCompilationUnit(OBPLParser.CompilationUnitContext ctx) { }
 	@Override public void exitCompilationUnit(OBPLParser.CompilationUnitContext ctx) { }
@@ -27,14 +31,17 @@ public class OBPLBaseListener implements OBPLListener {
 	@Override public void enterOrExpression(OBPLParser.OrExpressionContext ctx) { }
 	@Override public void exitOrExpression(OBPLParser.OrExpressionContext ctx) { }
 
-	@Override public void enterKeyDeclaration(OBPLParser.KeyDeclarationContext ctx) { }
-	@Override public void exitKeyDeclaration(OBPLParser.KeyDeclarationContext ctx) { }
-
 	@Override public void enterTypeDeclaration(OBPLParser.TypeDeclarationContext ctx) { }
 	@Override public void exitTypeDeclaration(OBPLParser.TypeDeclarationContext ctx) { }
 
+	@Override public void enterKeyDeclaration(OBPLParser.KeyDeclarationContext ctx) { }
+	@Override public void exitKeyDeclaration(OBPLParser.KeyDeclarationContext ctx) { }
+
 	@Override public void enterAdditiveOp(OBPLParser.AdditiveOpContext ctx) { }
 	@Override public void exitAdditiveOp(OBPLParser.AdditiveOpContext ctx) { }
+
+	@Override public void enterPckRefed(OBPLParser.PckRefedContext ctx) { }
+	@Override public void exitPckRefed(OBPLParser.PckRefedContext ctx) { }
 
 	@Override public void enterAndExpression(OBPLParser.AndExpressionContext ctx) { }
 	@Override public void exitAndExpression(OBPLParser.AndExpressionContext ctx) { }
@@ -81,11 +88,14 @@ public class OBPLBaseListener implements OBPLListener {
 	@Override public void enterAdditiveExpression(OBPLParser.AdditiveExpressionContext ctx) { }
 	@Override public void exitAdditiveExpression(OBPLParser.AdditiveExpressionContext ctx) { }
 
-	@Override public void enterStatement(OBPLParser.StatementContext ctx) { }
-	@Override public void exitStatement(OBPLParser.StatementContext ctx) { }
+	@Override public void enterPckItemAttributes(OBPLParser.PckItemAttributesContext ctx) { }
+	@Override public void exitPckItemAttributes(OBPLParser.PckItemAttributesContext ctx) { }
 
 	@Override public void enterBpDeclaration(OBPLParser.BpDeclarationContext ctx) { }
 	@Override public void exitBpDeclaration(OBPLParser.BpDeclarationContext ctx) { }
+
+	@Override public void enterStatement(OBPLParser.StatementContext ctx) { }
+	@Override public void exitStatement(OBPLParser.StatementContext ctx) { }
 
 	@Override public void enterIdEnumeration(OBPLParser.IdEnumerationContext ctx) { }
 	@Override public void exitIdEnumeration(OBPLParser.IdEnumerationContext ctx) { }
@@ -105,8 +115,14 @@ public class OBPLBaseListener implements OBPLListener {
 	@Override public void enterIdWithIdentifier(OBPLParser.IdWithIdentifierContext ctx) { }
 	@Override public void exitIdWithIdentifier(OBPLParser.IdWithIdentifierContext ctx) { }
 
+	@Override public void enterPckDeclaration(OBPLParser.PckDeclarationContext ctx) { }
+	@Override public void exitPckDeclaration(OBPLParser.PckDeclarationContext ctx) { }
+
 	@Override public void enterFieldDefinition2(OBPLParser.FieldDefinition2Context ctx) { }
 	@Override public void exitFieldDefinition2(OBPLParser.FieldDefinition2Context ctx) { }
+
+	@Override public void enterNetDeclaration(OBPLParser.NetDeclarationContext ctx) { }
+	@Override public void exitNetDeclaration(OBPLParser.NetDeclarationContext ctx) { }
 
 	@Override public void enterBoBody(OBPLParser.BoBodyContext ctx) { }
 	@Override public void exitBoBody(OBPLParser.BoBodyContext ctx) { }
