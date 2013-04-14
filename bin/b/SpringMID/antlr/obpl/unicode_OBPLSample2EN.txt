@@ -1,9 +1,0 @@
-app b.SpringMID.tester
-
-import b.SpringMID.tester.CUSTOMER
-
-bo ACCOUNT
-  ACCTNO
-  CUSTOMER : CUSTOMER
-  ABAL = BAL + QUOTA
-end

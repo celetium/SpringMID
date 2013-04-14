@@ -1,4 +1,4 @@
-package b.SpringMID.adapter.test;
+package b.SpringMID.adapter.common;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
