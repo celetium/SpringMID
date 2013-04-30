@@ -6,7 +6,11 @@ import java.util.Stack;
 public class Message implements Serializable {
 	private static final long serialVersionUID = -797242265180914298L;
 	public Message() {
+		this(null);
+	}
+	public Message(Object data) {
 		setId();
+		setData(data);
 	}
 	private String id;
 	public String getId() {
@@ -20,4 +24,12 @@ public class Message implements Serializable {
 	public Stack<String> dests = new Stack<String>();
 	public Stack<Object> iscTOs = new Stack<Object>();
 	public Stack<Object> iscFROMs = new Stack<Object>();
+	// 和消息携带的数据相关的 ...
+	private Object data;
+	public Object getData() {
+		return data;
+	}
+	public void setData(Object data) {
+		this.data = data;
+	}
 }

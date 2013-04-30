@@ -8,6 +8,10 @@ import b.SpringMID.util.XMLUtil;
 
 public class NameValueByXML implements NameValue {
 	private Node node;
+	public NameValueByXML() {
+		Document doc = XMLUtil.newDocument();
+		node = XMLUtil.newXmlNode(doc, "ROOT");
+	}
 	public NameValueByXML(Document doc) {
 		node = XMLUtil.newXmlNode(doc, "ROOT");
 	}
