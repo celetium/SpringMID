@@ -19,7 +19,7 @@ public class RegisterByDB implements Register {
 	@Override
 	public void started(Routed r) {
 		jdbc.update("INSERT INTO t_deployed_routed VALUES (?, ?, ?, ?)",  
-				rs.getDomainId(), rs.frame.getId(), Integer.valueOf(rs.getProcessId()), r.getId());
+				rs.getDomainId(), rs.serverId, Integer.valueOf(rs.getProcessId()), r.getId());
 		if (r instanceof DMProxy) {
 			jdbc.update("DELETE FROM t_domain WHERE domainId = ?", rs.getDomainId());
 			DMProxy dp = (DMProxy)r;

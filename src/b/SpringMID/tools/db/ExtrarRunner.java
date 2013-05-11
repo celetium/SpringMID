@@ -1,20 +1,22 @@
-package b.SpringMID.core;
+package b.SpringMID.tools.db;
 
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
-public class Runner {
+import b.SpringMID.core.RS;
 
-	private static Runner _instance = new Runner();
-	private Runner() {}
+public class ExtrarRunner {
+
+	private static ExtrarRunner _instance = new ExtrarRunner();
+	private ExtrarRunner() {}
 	private void run(String conf, String serverId) {
 		RS rs = RS.getInstance();
 		rs.serverId = serverId;
 		try {
 			if (conf == null)
-				conf = "conf/beans.xml";
+				conf = "conf/extrarbeans.xml";
 			rs.ctx = new FileSystemXmlApplicationContext(conf);
-			Module frame = rs.ctx.getBean(serverId, Module.class);
-			frame.start(new Object[]{rs.serverId});
+//			TimerRunner tr = rs.ctx.getBean(serverId, TimerRunner.class);
+//			tr.start(rs.serverId);
 			rs.log.info("Press <enter> to exit ...");
 			try {
 				System.in.read();

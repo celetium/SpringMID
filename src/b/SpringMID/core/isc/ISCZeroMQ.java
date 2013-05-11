@@ -16,10 +16,10 @@ public class ISCZeroMQ extends Routed {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void start() {
+	public void start(Object[] paras) {
 		this.router = rs.getBean("ISCRouter", RouterDomain.class);
 		prefix = "ipc://" + rs.getRunDir() + "/dev/";
-		self = prefix +  rs.frame.getId() + "." + rs.getProcessId();
+		self = prefix +  frame.getId() + "." + rs.getProcessId();
 		context = ZMQ.context(1);
 		requestReceiver = new ZeroMQReceiverX(context, self + ".RQ", 2, new ISCRequester());
 		requestReceiver.start();
@@ -30,15 +30,15 @@ public class ISCZeroMQ extends Routed {
 	class ISCRequester implements ZeroMQReceiverX.IHandler {
 		@Override
 		public void handle(Message msg) {
-			rs.error((! rs.frame.iscForward(msg)), 
-					"消息[" + msg.getId() + "]从[ISC]到达服务器[" + rs.frame.getId() + "]但目的地不在这里");
+			rs.error((! frame.iscForward(msg)), 
+					"消息[" + msg.getId() + "]从[ISC]到达服务器[" + frame.getId() + "]但目的地不在这里");
 		}
 	}
 
 	class ISCReplyer implements ZeroMQReceiverX.IHandler {
 		@Override
 		public void handle(Message msg) {
-			rs.frame.msgReturn(RS.ID4ISC, msg);
+			frame.msgReturn(RS.ID4ISC, msg);
 		}
 	}
 

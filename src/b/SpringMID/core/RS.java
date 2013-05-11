@@ -78,7 +78,7 @@ public class RS {
 		return _instance;
 	}
 	public AbstractApplicationContext ctx;
-	public Framework frame;
+	public String serverId;
 	public Log log;
 	public void error(boolean b, String info) {
 		if (b)

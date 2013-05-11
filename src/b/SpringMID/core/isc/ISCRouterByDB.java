@@ -40,7 +40,7 @@ public class ISCRouterByDB implements RouterDomain<DeployedZeroMQ> {
 	public DeployedZeroMQ fromX(String beanId) {
 		DeployedZeroMQ d = new DeployedZeroMQ();
 		d.setDomainId(rs.getDomainId());
-		d.setServerId(rs.frame.getId());
+		d.setServerId(rs.serverId);
 		d.setBeanId(beanId);
 		d.setProcessId(rs.getProcessId());
 		setDomainProperties(d);

@@ -9,6 +9,6 @@ public abstract class Module {
 	public void setId(String id) {
 		this.id = id;
 	}
-	public void start() {}
+	public void start(Object[] paras) {}
 	public void stop() {};
 }

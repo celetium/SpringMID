@@ -1,7 +1,6 @@
 // Generated from OBPL.g4 by ANTLR 4.0
 package b.SpringMID.antlr.obpl;
-import org.antlr.v4.runtime.tree.*;
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 public interface OBPLListener extends ParseTreeListener {
 	void enterExpression(OBPLParser.ExpressionContext ctx);

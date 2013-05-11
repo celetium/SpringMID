@@ -5,11 +5,11 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.Executors;
 
-public class Framework implements AutoCloseable {
-	private RS rs = RS.getInstance();
-	public void start(String id) {
-		rs.log.info(id + "框架启动中 ... ");
-		this.id = id;
+public class Framework extends Module implements AutoCloseable {
+	public void start(Object[] paras) {
+		rs.error((paras == null || paras.length < 1), "参数为空或不足");
+		setId((String)paras[0]);
+		rs.log.info(getId() + "框架启动中 ... ");
 		this.router = rs.getBean("router", Router.class);
 		if (rs.ctx.containsBean("register"))
 			this.register = rs.getBean("register", Register.class);
@@ -17,15 +17,11 @@ public class Framework implements AutoCloseable {
 			String beanId = routedList.get(i);
 			Routed r = rs.getBean(beanId, Routed.class);
 			r.setId(beanId);
-			r.start();
+			r.start(new Object[0]);
 			this.deployed.put(beanId, r);
-			rs.log.info(String.format("服务器[%s.%d]的模块[%s]已启动", id, rs.getProcessId(), beanId));
+			rs.log.info(String.format("服务器[%s.%d]的模块[%s]已启动", getId(), rs.getProcessId(), beanId));
 			this.register.started(r);
 		}
-	}
-	private String id;
-	public String getId() {
-		return id;
 	}
 	private List<String> routedList;
 	public List<String> getRoutedList() {
@@ -48,7 +44,7 @@ public class Framework implements AutoCloseable {
 		Routed r = deployed.get(beanId);
 		if (r == null) { // 不在本服务器内
 			r = deployed.get(RS.ID4ISC);
-		    rs.error((r == null), "服务器[" + id + "]未配置服务器间通信[ISC]");
+		    rs.error((r == null), "服务器[" + getId() + "]未配置服务器间通信[ISC]");
 		}
 	    msg.dests.push(beanId);
 		msg.callers.push(caller);
@@ -78,7 +74,7 @@ public class Framework implements AutoCloseable {
 	}
 	public void msgReturn(String caller, Message msg) {
 		rs.error((! iscReturn(msg)), 
-				"消息[" + msg.getId() + "]的应答迷路到达了[" + id + "]");
+				"消息[" + msg.getId() + "]的应答迷路到达了[" + getId() + "]");
 	}
 	public boolean iscReturn(Message msg) {
 		System.out.print("callers: ");
@@ -154,7 +150,7 @@ public class Framework implements AutoCloseable {
 		while (e.hasMoreElements()) {
 			Routed r = e.nextElement();
 			r.stop();
-			rs.log.info(String.format("服务器[%s.%d]的模块[%s]已停止", id, rs.getProcessId(), r.getId()));
+			rs.log.info(String.format("服务器[%s.%d]的模块[%s]已停止", getId(), rs.getProcessId(), r.getId()));
 			this.register.stopped(r);
 		}
 	}

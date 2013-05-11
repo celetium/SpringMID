@@ -44,9 +44,9 @@ public class DMProxyZeroMQ extends Routed implements DMProxy {
 	}
 	
 	@Override
-	public void start() {
+	public void start(Object[] paras) {
 		prefix = "ipc://" + rs.getRunDir() + "/dev/";
-		self = prefix +  rs.frame.getId() + "." + rs.getProcessId();
+		self = prefix +  frame.getId() + "." + rs.getProcessId();
 		context = ZMQ.context(1);
 		if (requestPort > 0) {
 			String requestPoint = "tcp://*:" + requestPort;
@@ -66,7 +66,7 @@ public class DMProxyZeroMQ extends Routed implements DMProxy {
 		@Override
 		public void handle(Message msg) {
 			DeployedZeroMQ r = (DeployedZeroMQ) msg.iscTOs.pop();
-			if (! rs.frame.iscForward(msg))
+			if (! frame.iscForward(msg))
 				send(msg, r, ".RQ");
 		}
 	}
@@ -75,7 +75,7 @@ public class DMProxyZeroMQ extends Routed implements DMProxy {
 		@Override
 		public void handle(Message msg) {
 			DeployedZeroMQ r = (DeployedZeroMQ) msg.iscFROMs.pop();
-			if (! rs.frame.iscReturn(msg))
+			if (! frame.iscReturn(msg))
 				send(msg, r, ".RS");
 		}
 	}
