@@ -1,13 +1,10 @@
 // Generated from OBPL.g4 by ANTLR 4.0
 package b.SpringMID.antlr.obpl;
-import org.antlr.v4.runtime.tree.ParseTreeListener;
+import org.antlr.v4.runtime.tree.*;
 
 public interface OBPLListener extends ParseTreeListener {
 	void enterExpression(OBPLParser.ExpressionContext ctx);
 	void exitExpression(OBPLParser.ExpressionContext ctx);
-
-	void enterItemAttribute(OBPLParser.ItemAttributeContext ctx);
-	void exitItemAttribute(OBPLParser.ItemAttributeContext ctx);
 
 	void enterCompilationUnit(OBPLParser.CompilationUnitContext ctx);
 	void exitCompilationUnit(OBPLParser.CompilationUnitContext ctx);
@@ -27,17 +24,14 @@ public interface OBPLListener extends ParseTreeListener {
 	void enterOrExpression(OBPLParser.OrExpressionContext ctx);
 	void exitOrExpression(OBPLParser.OrExpressionContext ctx);
 
-	void enterTypeDeclaration(OBPLParser.TypeDeclarationContext ctx);
-	void exitTypeDeclaration(OBPLParser.TypeDeclarationContext ctx);
-
 	void enterKeyDeclaration(OBPLParser.KeyDeclarationContext ctx);
 	void exitKeyDeclaration(OBPLParser.KeyDeclarationContext ctx);
 
+	void enterTypeDeclaration(OBPLParser.TypeDeclarationContext ctx);
+	void exitTypeDeclaration(OBPLParser.TypeDeclarationContext ctx);
+
 	void enterAdditiveOp(OBPLParser.AdditiveOpContext ctx);
 	void exitAdditiveOp(OBPLParser.AdditiveOpContext ctx);
-
-	void enterPckRefed(OBPLParser.PckRefedContext ctx);
-	void exitPckRefed(OBPLParser.PckRefedContext ctx);
 
 	void enterAndExpression(OBPLParser.AndExpressionContext ctx);
 	void exitAndExpression(OBPLParser.AndExpressionContext ctx);
@@ -84,14 +78,11 @@ public interface OBPLListener extends ParseTreeListener {
 	void enterAdditiveExpression(OBPLParser.AdditiveExpressionContext ctx);
 	void exitAdditiveExpression(OBPLParser.AdditiveExpressionContext ctx);
 
-	void enterPckItemAttributes(OBPLParser.PckItemAttributesContext ctx);
-	void exitPckItemAttributes(OBPLParser.PckItemAttributesContext ctx);
+	void enterStatement(OBPLParser.StatementContext ctx);
+	void exitStatement(OBPLParser.StatementContext ctx);
 
 	void enterBpDeclaration(OBPLParser.BpDeclarationContext ctx);
 	void exitBpDeclaration(OBPLParser.BpDeclarationContext ctx);
-
-	void enterStatement(OBPLParser.StatementContext ctx);
-	void exitStatement(OBPLParser.StatementContext ctx);
 
 	void enterIdEnumeration(OBPLParser.IdEnumerationContext ctx);
 	void exitIdEnumeration(OBPLParser.IdEnumerationContext ctx);
@@ -111,14 +102,8 @@ public interface OBPLListener extends ParseTreeListener {
 	void enterIdWithIdentifier(OBPLParser.IdWithIdentifierContext ctx);
 	void exitIdWithIdentifier(OBPLParser.IdWithIdentifierContext ctx);
 
-	void enterPckDeclaration(OBPLParser.PckDeclarationContext ctx);
-	void exitPckDeclaration(OBPLParser.PckDeclarationContext ctx);
-
 	void enterFieldDefinition2(OBPLParser.FieldDefinition2Context ctx);
 	void exitFieldDefinition2(OBPLParser.FieldDefinition2Context ctx);
-
-	void enterNetDeclaration(OBPLParser.NetDeclarationContext ctx);
-	void exitNetDeclaration(OBPLParser.NetDeclarationContext ctx);
 
 	void enterBoBody(OBPLParser.BoBodyContext ctx);
 	void exitBoBody(OBPLParser.BoBodyContext ctx);

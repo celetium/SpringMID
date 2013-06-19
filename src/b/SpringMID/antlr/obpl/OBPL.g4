@@ -21,8 +21,6 @@ importDeclaration
 typeDeclaration
 	: boDeclaration
 	| bpDeclaration
-	| netDeclaration
-	| pckDeclaration
 ;
 
 boDeclaration
@@ -35,31 +33,6 @@ bpDeclaration
 	: BP ID (COLONCOLON ID)? EOL+
 	  bpBody
 	  END EOL+
-;
-
-netDeclaration
-	: (NET|CHANNEL|CVT|EXT) qualifiedName EOL+
-	  ( ID ASSIGN boolExpression EOL+ )*
-	   END EOL+
-;
-
-pckDeclaration
-	: PCK qualifiedName EOL+
-	  ( ID ASSIGN boolExpression EOL+ )*
-	  ( ID COLON (pckRefed)? (pckItemAttributes)? (ASSIGN boolExpression)? EOL+ )*
-	  END EOL+
-	;
-
-pckRefed
-	: boolExpression AS (MACRO|BROTHER|CHILD)
-;
-
-pckItemAttributes
-	: ENUMBEGIN itemAttribute (COMMA itemAttribute)* ENUMEND
-;
-
-itemAttribute
-	: (ID ASSIGN)? literal
 ;
 
 boBody
@@ -391,42 +364,6 @@ IS
 
 EXISTS
 	: 'exists'
-;
-
-NET
-	: 'net'
-;
-
-CHANNEL
-	: 'channel'
-;
-
-CVT
-	: 'ext'
-;
-
-EXT
-	: 'cvt'
-;
-
-PCK
-	: 'pck'
-;
-
-AS
-	: 'as'
-;
-
-MACRO
-	: 'MACRO'
-;
-
-BROTHER
-	: 'BROTHER'
-;
-
-CHILD
-	: 'CHILD'
 ;
 
 ID
