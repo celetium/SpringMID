@@ -12,9 +12,14 @@
 			<ref bean="dataSource" />
 		</property>
 	</bean>
-	<bean id="extrar" class="b.SpringMID.tools.db.TimerExtrar" lazy-init="true" >
+	<bean id="pub1" class="b.SpringMID.tools.db.Extrar" lazy-init="true" >
 		<property name="jdbc">
 			<ref bean="jdbc" />
+		</property>
+		<property name="extraList">
+			<list>
+				<value>PCK@jdbc,10</value>
+			</list>
 		</property>
 	</bean>
 </beans>

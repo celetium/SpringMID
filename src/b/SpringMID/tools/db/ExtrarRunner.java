@@ -2,6 +2,7 @@ package b.SpringMID.tools.db;
 
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
+import b.SpringMID.core.Module;
 import b.SpringMID.core.RS;
 
 public class ExtrarRunner {
@@ -15,8 +16,8 @@ public class ExtrarRunner {
 			if (conf == null)
 				conf = "conf/extrarbeans.xml";
 			rs.ctx = new FileSystemXmlApplicationContext(conf);
-//			TimerRunner tr = rs.ctx.getBean(serverId, TimerRunner.class);
-//			tr.start(rs.serverId);
+			Module frame = rs.ctx.getBean(serverId, Module.class);
+			frame.start(new Object[]{rs.serverId});
 			rs.log.info("Press <enter> to exit ...");
 			try {
 				System.in.read();
