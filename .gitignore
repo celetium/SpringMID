@@ -9,4 +9,4 @@
 # Log Files #
 *.log
 *.lck
-*.DS_Store
+.DS_Store
