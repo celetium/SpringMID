@@ -8,13 +8,14 @@ import b.SpringMID.base.TimerTaskGroup;
 import b.SpringMID.base.TimerTaskGroupRunner;
 import b.SpringMID.core.Module;
 
-public class Extrar extends Module {
+public class DbSync extends Module {
 	public void start(Object[] paras) {
 		rs.error((paras == null || paras.length < 1), "参数为空或不足");
 		setId((String)paras[0]);
 		rs.log.info(getId() + "框架启动中 ... ");
 		for (int i = 0; i < extraList.size(); ++i) {
-			group.setTimerTask(new TimerExtrar(jdbc, extraList.get(i)));
+			extraList.get(i).setJdbc(jdbc);
+			group.setTimerTask(extraList.get(i));
 		}
 		new TimerTaskGroupRunner(group).run();
 	}
@@ -23,11 +24,11 @@ public class Extrar extends Module {
 		this.jdbc = jdbc;
 	}
 	private TimerTaskGroup group = new TimerTaskGroup();
-	private List<String> extraList;
-	public List<String> getExtraList() {
+	private List<TimerExtrar> extraList;
+	public List<TimerExtrar> getExtraList() {
 		return extraList;
 	}
-	public void setExtraList(List<String> extraList) {
+	public void setExtraList(List<TimerExtrar> extraList) {
 		this.extraList = extraList;
 	}
 }
