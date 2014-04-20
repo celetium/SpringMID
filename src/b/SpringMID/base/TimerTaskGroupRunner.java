@@ -44,7 +44,7 @@ public class TimerTaskGroupRunner implements Runnable, Serializable {
 		for (int i = 0; i < taskNum; ++i)
 			intervalTimes[i] = tasks.get(i).getInterval() / group.getInterval();
 		int sleepTime = group.getInterval() * 1000; // 转为毫妙
-		for (int n = 0; n < 1; ++n) {
+		for (int n = 0; n < 2; ++n) {
 			for (int i = 1; i <= loopTimes; ++i) {
 				try {
 					Thread.sleep(sleepTime);

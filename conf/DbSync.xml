@@ -8,26 +8,27 @@
 		<property name="username" value="SA" />
 	</bean>
 	<bean id="jdbc" class="org.springframework.jdbc.core.JdbcTemplate">
-		<property name="dataSource">
-			<ref bean="dataSource" />
-		</property>
+		<property name="dataSource"> <ref bean="dataSource" /> </property>
 	</bean>
-	<bean id="pub1" class="b.SpringMID.tools.db.TimerExtrar" p:ds="jdbc" p:table="PCK" p:interval="10" />
-	<bean id="pubs" class="b.SpringMID.tools.db.Extrar" lazy-init="true" >
+	<bean id="pub1" class="b.SpringMID.tools.db.TimerExtrar" p:extrarId="1" p:table="PCK" p:interval="10" >
+		<property name="jdbcFrom"> <ref bean="jdbc" /> </property>
+	</bean>
+	<bean id="pubs" class="b.SpringMID.tools.db.DbSync" lazy-init="true" >
 		<property name="jdbc"> <ref bean="jdbc" /> </property>
-		<property name="extraList">
+		<property name="extrarList">
 			<list>
 				<ref bean="pub1" />
 			</list>
 		</property>
 	</bean>
-	<bean id="subs" class="b.SpringMID.tools.db.Replicar" lazy-init="true" >
-		<property name="jdbc">
-			<ref bean="jdbc" />
-		</property>
-		<property name="extraList">
+	<bean id="sub1" class="b.SpringMID.tools.db.TimerReplicar" p:replicarId="1" p:tableFrom="PCK" p:tableTo="T_PCK_DUP" p:interval="10" >
+		<property name="jdbcTo"> <ref bean="jdbc" /> </property>
+	</bean>
+	<bean id="subs" class="b.SpringMID.tools.db.DbSync" lazy-init="true" >
+		<property name="jdbc"> <ref bean="jdbc" /> </property>
+		<property name="replicarList">
 			<list>
-				<value>PCK@jdbc,10</value>
+				<ref bean="sub1" />
 			</list>
 		</property>
 	</bean>

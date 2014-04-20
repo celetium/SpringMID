@@ -1,27 +1,51 @@
-/*C68*/SET SCHEMA PUBLIC
-DELETE FROM XT_PCK WHERE GROUPID='test1' AND ID='DIV1' AND NAME='' AND CONVERTERID='converter.div' AND TRIM=0 AND SYNCSEQNO=2
+/*C2*/SET SCHEMA PUBLIC
+DELETE FROM XT_PCK WHERE GROUPID='test1' AND ID='FIX1' AND NAME='' AND CONVERTERID='converter.fix' AND TRIM=0 AND SYNCSEQNO=1
 COMMIT
-/*C69*/SET SCHEMA PUBLIC
+create table XX_SYNC_REC\u000a(\u000a  syncType varchar(1) not null,\u000a  syncId varchar(30) not null,\u000a  syncStatus varchar(1) not null,\u000a  lastSyncSeqNo integer not null\u000a)
+create unique index XX_SYNC_REC_UK on XX_SYNC_REC (syncType, syncId)
+drop table XP_PCK
+create table XP_PCK\u000a(\u000a  groupId varchar(30) not null,\u000a  id varchar(30) not null,\u000a  name varchar(30),\u000a  converterId varchar(30) not null,\u000a  trim integer,\u000a  syncSeqNo integer not null,\u000a  syncRowType integer not null,\u000a  extraStatus varchar(1) not null\u000a)
+create unique index XP_PCK_UK on XP_PCK (syncSeqNo)
+drop table XT_PCK
+create table XT_PCK\u000a(\u000a  groupId varchar(30) not null,\u000a  id varchar(30) not null,\u000a  name varchar(30),\u000a  converterId varchar(30) not null,\u000a  trim integer,\u000a  syncSeqNo integer not null,\u000a  syncRowType integer not null\u000a)
+create unique index XT_PCK_UK on XT_PCK (syncSeqNo)
+INSERT INTO XP_PCK VALUES('test1','FIX1','','converter.fix',0,1,1,'N')
+COMMIT
+INSERT INTO XP_PCK VALUES('test1','DIV1','','converter.div',0,2,1,'N')
+COMMIT
+/*C3*/SET SCHEMA PUBLIC
 DISCONNECT
-/*C68*/DELETE FROM XP_PCK WHERE GROUPID='test1' AND ID='FIX1' AND NAME='' AND CONVERTERID='converter.fix' AND TRIM=0 AND SYNCSEQNO=1 AND EXTRASTATUS='C'
-DELETE FROM XP_PCK WHERE GROUPID='test1' AND ID='DIV1' AND NAME='' AND CONVERTERID='converter.div' AND TRIM=0 AND SYNCSEQNO=2 AND EXTRASTATUS='C'
-INSERT INTO XP_PCK VALUES('test1','FIX1','','converter.fix',0,1,'N')
-INSERT INTO XP_PCK VALUES('test1','DIV1','','converter.div',0,2,'N')
+/*C5*/SET SCHEMA PUBLIC
+INSERT INTO XT_PCK VALUES('test1','FIX1','','converter.fix',0,1,1)
 COMMIT
-/*C70*/SET SCHEMA PUBLIC
+INSERT INTO XT_PCK VALUES('test1','DIV1','','converter.div',0,2,1)
+COMMIT
+/*C4*/SET SCHEMA PUBLIC
+DELETE FROM XP_PCK WHERE GROUPID='test1' AND ID='FIX1' AND NAME='' AND CONVERTERID='converter.fix' AND TRIM=0 AND SYNCSEQNO=1 AND SYNCROWTYPE=1 AND EXTRASTATUS='N'
+DELETE FROM XP_PCK WHERE GROUPID='test1' AND ID='DIV1' AND NAME='' AND CONVERTERID='converter.div' AND TRIM=0 AND SYNCSEQNO=2 AND SYNCROWTYPE=1 AND EXTRASTATUS='N'
+INSERT INTO XP_PCK VALUES('test1','FIX1','','converter.fix',0,1,1,'C')
+INSERT INTO XP_PCK VALUES('test1','DIV1','','converter.div',0,2,1,'C')
+COMMIT
+/*C6*/SET SCHEMA PUBLIC
 DISCONNECT
-/*C71*/SET SCHEMA PUBLIC
+/*C7*/SET SCHEMA PUBLIC
 DISCONNECT
-/*C73*/SET SCHEMA PUBLIC
-INSERT INTO XT_PCK VALUES('test1','FIX1','','converter.fix',0,1)
+/*C4*/DISCONNECT
+/*C5*/DISCONNECT
+/*C2*/create table T_PCK_DUP\u000a(\u000a  groupId varchar(30) not null,\u000a  id varchar(30) not null,\u000a  name varchar(30),\u000a  converterId varchar(30) not null,\u000a  trim integer\u000a)
+create unique index PCK_DUP_UK on T_PCK_DUP (groupId, id)
+/*C8*/SET SCHEMA PUBLIC
+DISCONNECT
+/*C9*/SET SCHEMA PUBLIC
+INSERT INTO XX_SYNC_REC VALUES('R','1','E',0)
 COMMIT
-INSERT INTO XT_PCK VALUES('test1','DIV1','','converter.div',0,2)
+/*C10*/SET SCHEMA PUBLIC
+INSERT INTO T_PCK_DUP VALUES('test1','FIX1','','converter.fix',0)
 COMMIT
-/*C72*/SET SCHEMA PUBLIC
-DELETE FROM XP_PCK WHERE GROUPID='test1' AND ID='FIX1' AND NAME='' AND CONVERTERID='converter.fix' AND TRIM=0 AND SYNCSEQNO=1 AND EXTRASTATUS='N'
-DELETE FROM XP_PCK WHERE GROUPID='test1' AND ID='DIV1' AND NAME='' AND CONVERTERID='converter.div' AND TRIM=0 AND SYNCSEQNO=2 AND EXTRASTATUS='N'
-INSERT INTO XP_PCK VALUES('test1','FIX1','','converter.fix',0,1,'C')
-INSERT INTO XP_PCK VALUES('test1','DIV1','','converter.div',0,2,'C')
+INSERT INTO T_PCK_DUP VALUES('test1','DIV1','','converter.div',0)
 COMMIT
-/*C73*/DISCONNECT
-/*C72*/DISCONNECT
+/*C9*/DELETE FROM XX_SYNC_REC WHERE SYNCTYPE='R' AND SYNCID='1' AND SYNCSTATUS='E' AND LASTSYNCSEQNO=0
+INSERT INTO XX_SYNC_REC VALUES('R','1','E',2)
+COMMIT
+DISCONNECT
+/*C10*/DISCONNECT

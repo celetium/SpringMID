@@ -39,5 +39,8 @@ public class TimerTaskGroup {
 	public int getMax() {
 		return max;
 	}
+	public boolean empty() {
+		return (tasks.size() == 0);
+	}
 }
 
