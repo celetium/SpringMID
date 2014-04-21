@@ -34,6 +34,7 @@ create table XX_SYNC_REC
   lastSyncSeqNo integer not null
 );
 create unique index XX_SYNC_REC_UK on XX_SYNC_REC (syncType, syncId);
+create index XX_SYNC_REC_DK on XX_SYNC_REC (syncStatus);
 -- For testing
 drop table T_PCK_DUP;
 create table T_PCK_DUP

@@ -1,14 +1,17 @@
 package b.SpringMID.tools.db;
 
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 import b.SpringMID.base.TimerTask;
 import b.SpringMID.core.Module;
@@ -54,20 +57,52 @@ public class TimerReplicar extends Module implements TimerTask {
 		return interval;
 	}
 	private Hashtable<String, Integer> columnTypes = new Hashtable<String, Integer>();
+	private class DbColumn {
+		public String name, type;
+		boolean nullable;
+	}
+	Hashtable<String, DbColumn> cols = new Hashtable<String, DbColumn>();
+	List<String> uKey = new ArrayList<String>();
 	@Override
 	public void handler() throws RuntimeException {
-		SqlRowSet set = jdbcTo.queryForRowSet("SELECT * FROM " + tableTo + " WHERE 1=2");
-		SqlRowSetMetaData meta = set.getMetaData();
-		int count = meta.getColumnCount();
-		for (int i = 1; i <= count; ++count) {
-			columnTypes.put(meta.getColumnName(i), meta.getColumnType(i));
+		try {
+			DatabaseMetaData meta = jdbc.getDataSource().getConnection().getMetaData(); 
+			ResultSet rs4cols = meta.getColumns(null, "%", "T_PCK", "%");
+			while (rs4cols.next()) {
+				DbColumn column = new DbColumn();
+				column.name = rs4cols.getString("COLUMN_NAME"); 
+				column.type = rs4cols.getString("TYPE_NAME"); 
+				column.nullable = (rs4cols.getInt("NULLABLE") == 1); 
+				cols.put(column.name, column);
+			}
+			ResultSet rs4idx = meta.getPrimaryKeys(null, null, "XX_SYNC_REC");
+			if (!rs4idx.next())
+				rs4idx = meta.getIndexInfo(null, null, "XX_SYNC_REC", true, false);
+			String firstIndexName = null;
+			while (rs4idx.next() ) { 
+				// TABLE_CAT, TABLE_SCHEM, TABLE_NAME, NON_UNIQUE, INDEX_QUALIFIER, INDEX_NAME, TYPE, ORDINAL_POSITION, COLUMN_NAME, ASC_OR_DESC, CARDINALITY, PAGES, FILTER_CONDITION, ROW_CARDINALITY]
+				String indexName = rs4idx.getString("INDEX_NAME");
+				if (firstIndexName == null)
+					firstIndexName = indexName;
+				if (!indexName.equals(firstIndexName))
+					continue;
+				uKey.add(rs4idx.getString("COLUMN_NAME")); 
+			}
+		} catch (SQLException se) {
+			throw new RuntimeException(se);
 		}
+//		SqlRowSet set = jdbcTo.queryForRowSet("SELECT * FROM " + tableTo + " WHERE 1=2");
+//		SqlRowSetMetaData meta = set.getMetaData();
+//		int count = meta.getColumnCount();
+//		for (int i = 1; i <= count; ++count) {
+//			columnTypes.put(meta.getColumnName(i), meta.getColumnType(i));
+//		}
 		String sql0 = "SELECT lastSyncSeqNo FROM xx_sync_rec WHERE syncType = 'R' AND syncId = " + replicarId;
 		ReplicateRows er = new ReplicateRows();
 		String ds = jdbcTo.getDataSource().toString();
         rs.log.info("从中间表[" + tableFrom + "]拷贝变化到目的表[" + ds + "." + tableTo + "] ...");
         try {
-        	set = jdbc.queryForRowSet(sql0);
+        	SqlRowSet set = jdbc.queryForRowSet(sql0);
         	int lastSyncSeqNo = 0;
         	if (set.first()) {
         		lastSyncSeqNo = set.getInt(1);
