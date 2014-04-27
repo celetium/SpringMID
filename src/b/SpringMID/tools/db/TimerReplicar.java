@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -56,7 +57,6 @@ public class TimerReplicar extends Module implements TimerTask {
 	public int getInterval() {
 		return interval;
 	}
-	private Hashtable<String, Integer> columnTypes = new Hashtable<String, Integer>();
 	private class DbColumn {
 		public String name;
 		int type;
@@ -69,7 +69,6 @@ public class TimerReplicar extends Module implements TimerTask {
 		try {
 			DatabaseMetaData meta = jdbc.getDataSource().getConnection().getMetaData(); 
 			ResultSet rs4cols = meta.getColumns(null, "%", tableTo.toUpperCase(), "%");
-			Hashtable<Integer, DbColumn> h = new Hashtable<Integer, DbColumn>();
 			while (rs4cols.next()) {
 				// TABLE_CAT, TABLE_SCHEM, TABLE_NAME, COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_SIZE, BUFFER_LENGTH, DECIMAL_DIGITS, NUM_PREC_RADIX, NULLABLE, REMARKS, COLUMN_DEF, SQL_DATA_TYPE, SQL_DATETIME_SUB, CHAR_OCTET_LENGTH, ORDINAL_POSITION, IS_NULLABLE, SCOPE_CATALOG, SCOPE_SCHEMA, SCOPE_TABLE, SOURCE_DATA_TYPE, IS_AUTOINCREMENT, IS_GENERATEDCOLUMN
 				DbColumn column = new DbColumn();
@@ -122,7 +121,7 @@ public class TimerReplicar extends Module implements TimerTask {
             rs.log.info("SQL: " + sql1);
         	jdbc.query(sql1, er);
         } catch (DataAccessException e) {
-        	e.printStackTrace();
+        	rs.log.error(e);
         } finally {
         	if (er.getCount() > 0) {
         		String sqlx = "UPDATE xx_sync_rec SET lastSyncSeqNo = lastSyncSeqNo + ? WHERE syncType = 'R' AND syncId = " + replicarId;
@@ -150,22 +149,29 @@ public class TimerReplicar extends Module implements TimerTask {
 			insertTypes[i] = meta.getColumnType(i+1);
 			iSql = iSql + (iSql.length() > 0 ? ", " : "") + "?";
 			String name = colsIdx.get(new Integer(i+1)).name;
-			if (!uKey.contains(name)) {
-				updateTypes[j++] = meta.getColumnType(i+1);
-				uSql = uSql + (uSql.length() > 0 ? ", " : "") + name + " = ?";
-			} else {
+			if (uKey.contains(name)) {
 				whereTypes[k++] = meta.getColumnType(i+1);
 				where = where + (where.length() > 0 ? " AND " : "") + name + " = ?";
+			} else {
+				updateTypes[j++] = meta.getColumnType(i+1);
+				uSql = uSql + (uSql.length() > 0 ? ", " : "") + name + " = ?";
 			}
 		}
 		for (int i = 0, j = updateTypes.length - whereTypes.length; i < whereTypes.length; ++i) {
 			updateTypes[j+i] = whereTypes[i];
 		}
-		iSql = iSql + ")";
-		copyInsertSQL = "INSERT INTO " + tableTo.toLowerCase() + " VALUES (" + iSql;
+		copyInsertSQL = "INSERT INTO " + tableTo.toLowerCase() + " VALUES (" + iSql + ")";
 		copyUpdateSQL = "UPDATE " + tableTo.toLowerCase() + " SET " + uSql + " WHERE " + where;
 		copyDeleteSQL = "DELETE FROM " + tableTo + " WHERE " + where;
 	}
+	public List<ColumnMapper> getMapperList() {
+		return mapperList;
+	}
+
+	public void setMapperList(List<ColumnMapper> mapperList) {
+		this.mapperList = mapperList;
+	}
+	private List<ColumnMapper> mapperList;
 	private final static int INSERT = 1;
 	private final static int UPDATE = 2;
 	private final static int DELETE = 3;
@@ -183,18 +189,18 @@ public class TimerReplicar extends Module implements TimerTask {
 			rs.log.info("COPY-INSERT: " + copyInsertSQL);
 			jdbc.update(copyInsertSQL, cols, insertTypes);
 		}
-		private void copyUpdate(ResultSet set) throws Exception {
+		private int copyUpdate(ResultSet set) throws Exception {
 			Object[] cols = new Object[updateTypes.length];
 			for (int i = 0, j = 0, k = updateTypes.length - whereTypes.length; i < updateTypes.length; ++i) {
 				String name = colsIdx.get(new Integer(i+1)).name;
-				if (!uKey.contains(name)) {
-					cols[j++] = set.getObject(i+1);
-				} else {
+				if (uKey.contains(name)) {
 					cols[k++] = set.getObject(i+1);
+				} else {
+					cols[j++] = set.getObject(i+1);
 				}
 			}
 			rs.log.info("COPY-UPDATE: " + copyUpdateSQL);
-			jdbc.update(copyUpdateSQL, cols, updateTypes);
+			return jdbc.update(copyUpdateSQL, cols, updateTypes);
 		}
 		private void copyDelete(ResultSet set) throws Exception {
 			Object[] cols = new Object[whereTypes.length];
@@ -206,6 +212,85 @@ public class TimerReplicar extends Module implements TimerTask {
 			}
 			rs.log.info("COPY-DELETE: " + copyDeleteSQL);
 			jdbc.update(copyDeleteSQL, cols, whereTypes);
+		}
+		private void copyUpsert(ResultSet set) throws Exception {
+			if (copyUpdate(set) == 0)
+				copyInsert(set);
+		}
+		private void mapInsert(ResultSet set, Hashtable<String, Object> h) throws Exception {
+			int[] mapTypes = new int[colsNm.size()];
+			Object[] mapValues = new Object[colsNm.size()];
+			Enumeration<Integer> poses = colsIdx.keys();
+			String sql = "";
+			for (int i = 0; poses.hasMoreElements(); ) {
+				DbColumn column = colsIdx.get(poses.nextElement());
+				Object o = h.get(column.name);
+				if (!column.nullable && o == null)
+						throw new RuntimeException("非空列必须赋值");
+				if (o != null) {
+					mapTypes[i] = column.type;
+					mapValues[i++] = o;
+					sql = sql + (sql.length() > 0 ? ", " : "") + "?";
+				}
+				sql = "INSERT INTO " + tableTo.toLowerCase() + " VALUES (" + sql + ")";
+			}
+			rs.log.info("MAP-INSERT: " + sql);
+			jdbc.update(sql, mapValues, mapTypes);
+		}
+		private int mapUpdate(ResultSet set, Hashtable<String, Object> h) throws Exception {
+			int[] mapTypes = new int[colsNm.size()];
+			Object[] mapValues = new Object[colsNm.size()];
+			int[] keyTypes = new int[uKey.size()];
+			Object[] keyValues = new Object[uKey.size()];
+			String sql = "", where = "";
+			Enumeration<Integer> poses = colsIdx.keys();
+			int i = 0;
+			for (int k = 0; poses.hasMoreElements(); ) {
+				DbColumn column = colsIdx.get(poses.nextElement());
+				Object o = h.get(column.name);
+				if (o != null) {
+					if (uKey.contains(column.name)) {
+						keyTypes[k] = column.type;
+						keyValues[k++] = o;
+						where = where + (where.length() > 0 ? " AND " : "") + column.name + " = ?";
+					} else {
+						mapTypes[i] = column.type;
+						mapValues[i++] = o;
+						sql = sql + (sql.length() > 0 ? ", " : "") + column.name + " = ?";
+					}
+				}
+			}
+			for (int k = 0; k < keyTypes.length; ++k) {
+				mapTypes[i] = keyTypes[k];
+				mapValues[i++] = keyValues[k];
+			}
+			sql = "UPDATE " + tableTo.toLowerCase() + " SET " + sql + " WHERE " + where;
+			rs.log.info("MAP-UPDATE: " + sql);
+			return jdbc.update(sql, mapValues, mapTypes);
+		}
+		private void mapDelete(ResultSet set, Hashtable<String, Object> h) throws Exception {
+			int[] keyTypes = new int[uKey.size()];
+			Object[] keyValues = new Object[uKey.size()];
+			String where = "";
+			Enumeration<Integer> poses = colsIdx.keys();
+			for (int k = 0; poses.hasMoreElements(); ) {
+				DbColumn column = colsIdx.get(poses.nextElement());
+				Object o = h.get(column.name);
+				if (o != null) {
+					if (uKey.contains(column.name)) {
+						keyTypes[k] = column.type;
+						keyValues[k++] = o;
+						where = where + (where.length() > 0 ? " AND " : "") + column.name + " = ?";
+					}
+				}
+			}
+			where = "DELETE FROM " + tableTo.toLowerCase() + " WHERE " + where;
+			rs.log.info("MAP-UPDATE: " + where);
+			jdbc.update(where, keyValues, keyTypes);
+		}
+		private void mapUpsert(ResultSet set, Hashtable<String, Object> h) throws Exception {
+			if (mapUpdate(set, h) == 0)
+				mapInsert(set, h);
 		}
 		@Override
 		public void processRow(ResultSet set) {
@@ -220,61 +305,30 @@ public class TimerReplicar extends Module implements TimerTask {
 				    		copyUpdate(set);
 				    	else if (syncRowType == DELETE)
 				    		copyDelete(set);
+				    	else if (syncRowType == UPSERT)
+				    		copyUpsert(set);
 				    	else
 				    		throw new RuntimeException("不支持的行操作类型[" + syncRowType + "]");
 				    } else if (replicarType.equals("MAP")) { // 配置性异构
-//				        for (int i = 0; i < maps.size(); ++i) {
-//				            char * pcCol  = maps[i]->get("DSTCOLID");
-//				            char * pcType = maps[i]->get("MAPTYPE");
-//				            char * pcExpr = maps[i]->get("MAPEXPR");
-//				            char * pcCond = maps[i]->get("MAPCOND", false);
-//				            String value = maps[i].defaultValue;
-//				            bool bOK = true;
-//				            if (maps[i].cond != null) {
-//				                int iRet = boolExpr(pcCond, &msg, 0, mapVarValue, &iOK);
-//				                M_THROW_SYS_ERROR((iRet != 0), "boolExpr() error");
-//				            }
-//				            if (! bOK)
-//				            	continue;
-//				            if (maps[i].type.equals("ASSIGN"))
-//				                //msg.set(pcCol, row->get(pcExpr, false, pcDefault));
-//				            else if (maps[i].type.equals("CONST"))
-//				                msg.set(pcCol, pcExpr);
-//				            else if (maps[i].type.equals("MAP")) {
-//				                SP_Row mapval;
-//				                dao.select(mapval, _spcSQL2, pTbl->get("SYNCID"), pcCol, msg.get(pcExpr));
-//				                if (! mapval.null())
-//				                    msg.set(pcCol, mapval->get("DSTVALUE"));
-//				                else if (pcDefault == NULL)
-//				                    logwarn("映射失败[%s.%s] <= 值[%s]翻译", pTbl->get("SYNCID"), pcCol, msg.get(pcExpr));
-//				            } else if (maps[i].type.equals("QUERY")) {
-//				                CRsMngr rs;
-//				                M_SPLIT_STR2ARRAY(pcExpr, '`', v);
-//				                char * pcSQL = (v.size() > 1) ? v[1] : v[0];
-//				                CDao mydao = (v.size() > 1) ? CDao("oracledaoDup", v[0]) : dao;
-//				                std::string sql = pDU->spellSQL(&msg.root_, pcSQL);
-//				                SP_Row mapval;
-//				                mydao.select(mapval, sql.c_str());
-//				                if (! mapval.null()) {
-//				                    pDU->mergeRow(mapval, msg); // 可以一次赋予多个值
-//				                } else if (pcDefault == NULL)
-//				                    logwarn("映射失败[%s.%s] <= [%s]", pTbl->get("SYNCID"), pcCol, sql.c_str());
-//				            } else if (maps[i].type.equals("COMPUTE")) {
-//				                char * pcRslt = NULL;
-//				                int iRet = mathExpr(pcExpr, &msg, 0, mapVarValue, &pcRslt);
-//				                M_THROW_SYS_ERROR((iRet != 0), "mathExpr() error");
-//				                msg.set(pcCol, pcRslt);
-//				                free(pcRslt);
-//				            } else
-//				                throw new Exception("映射失败[%s.%s] <= 未知映射类型[%s]", pTbl->get("SYNCID"), pcCol, pcType);
-//				        }
-//				        doSync(pTbl, msg);
+				    	Hashtable<String, Object> h = new Hashtable<String, Object>();
+				        for (int i = 0; i < mapperList.size(); ++i) {
+				        	ColumnMapper m = mapperList.get(i);
+				        	h.put(m.getColumnId(), m.executeMap(jdbc, set));
+				        }
+				    	if (syncRowType == INSERT)
+				    		mapInsert(set, h);
+				    	else if (syncRowType == UPDATE)
+				    		mapUpdate(set, h);
+				    	else if (syncRowType == DELETE)
+				    		mapDelete(set, h);
+				    	else if (syncRowType == UPSERT)
+				    		mapUpsert(set, h);
+				    	else
+				    		throw new RuntimeException("不支持的行操作类型[" + syncRowType + "]");
 				    }
 					++count;
 					rs.log.error("count = " + count);
 			} catch (Exception e) {
-				//e.printStackTrace();
-				rs.log.error(e);
 				throw new RuntimeException(e);
 			}
 		}
