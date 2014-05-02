@@ -46,3 +46,10 @@ create table T_PCK_DUP
   trim integer
 );
 create unique index PCK_DUP_UK on T_PCK_DUP (groupId, id);
+drop table T_CONVERTER;
+create table T_CONVERTER
+(
+  id varchar(30) not null,
+  name varchar(30)
+);
+create unique index T_CONVERTER_UK on T_CONVERTER (id);

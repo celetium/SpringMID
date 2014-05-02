@@ -46,7 +46,7 @@ public class TimerReplicar extends Module implements TimerTask {
 		this.replicarId = replicarId;
 	}
 
-	public void setSyncType(String syncType) {
+	public void setReplicarType(String syncType) {
 		this.replicarType = syncType;
 	}
 
@@ -59,25 +59,31 @@ public class TimerReplicar extends Module implements TimerTask {
 	}
 	private class DbColumn {
 		public String name;
-		int type;
+		int type, no;
 		boolean nullable;
 	}
-	Hashtable<String, DbColumn> colsNm = new Hashtable<String, DbColumn>();
-	Hashtable<Integer, DbColumn> colsIdx = new Hashtable<Integer, DbColumn>();
+	//Hashtable<String, DbColumn> colsNm = new Hashtable<String, DbColumn>();
+	DbColumn[] columns;
 	List<String> uKey = new ArrayList<String>();
 	private void getTableInfo() {
 		try {
 			DatabaseMetaData meta = jdbc.getDataSource().getConnection().getMetaData(); 
 			ResultSet rs4cols = meta.getColumns(null, "%", tableTo.toUpperCase(), "%");
+			Hashtable<Integer, DbColumn> colsIdx = new Hashtable<Integer, DbColumn>();
 			while (rs4cols.next()) {
 				// TABLE_CAT, TABLE_SCHEM, TABLE_NAME, COLUMN_NAME, DATA_TYPE, TYPE_NAME, COLUMN_SIZE, BUFFER_LENGTH, DECIMAL_DIGITS, NUM_PREC_RADIX, NULLABLE, REMARKS, COLUMN_DEF, SQL_DATA_TYPE, SQL_DATETIME_SUB, CHAR_OCTET_LENGTH, ORDINAL_POSITION, IS_NULLABLE, SCOPE_CATALOG, SCOPE_SCHEMA, SCOPE_TABLE, SOURCE_DATA_TYPE, IS_AUTOINCREMENT, IS_GENERATEDCOLUMN
 				DbColumn column = new DbColumn();
 				column.name = rs4cols.getString("COLUMN_NAME"); 
 				column.type = rs4cols.getInt("DATA_TYPE");
 				column.nullable = (rs4cols.getInt("NULLABLE") == 1);
-				int pos = rs4cols.getInt("ORDINAL_POSITION");
-				colsNm.put(column.name, column);
-				colsIdx.put(new Integer(pos), column);
+				column.no = rs4cols.getInt("ORDINAL_POSITION");
+				colsIdx.put(new Integer(column.no), column);
+			}
+			Enumeration<Integer> enumIdx = colsIdx.keys();
+			columns = new DbColumn[colsIdx.size()];
+			while (enumIdx.hasMoreElements()) {
+				DbColumn c = colsIdx.get(enumIdx.nextElement());
+				columns[c.no - 1] = c;
 			}
 			ResultSet rs4idx = meta.getPrimaryKeys(null, null, tableTo);
 			if (!rs4idx.next())
@@ -100,7 +106,7 @@ public class TimerReplicar extends Module implements TimerTask {
 	}
 	@Override
 	public void handler() throws RuntimeException {
-		if (colsNm.size() == 0) {
+		if (columns == null) {
 			getTableInfo();
 		}
 		String sql0 = "SELECT lastSyncSeqNo FROM xx_sync_rec WHERE syncType = 'R' AND syncId = " + replicarId;
@@ -132,6 +138,8 @@ public class TimerReplicar extends Module implements TimerTask {
     }
 	private int[] insertTypes, updateTypes, whereTypes;
 	private String copyInsertSQL, copyUpdateSQL, copyDeleteSQL;
+	private String[] columnNames;
+	private Hashtable<String, Integer> columnTypeTable;
 	private void getMetaInfo(ResultSet set) throws Exception {
 		if (insertTypes != null)
 			return;
@@ -143,18 +151,21 @@ public class TimerReplicar extends Module implements TimerTask {
 		if (cc == 0)
 			return;
 		insertTypes = new int[cc-2]; // 最后2个字段是工具用的
+		columnNames = new String[cc-2];
 		updateTypes = new int[cc-2];
+		columnTypeTable = new Hashtable<String, Integer>();
 		whereTypes = new int[uKey.size()];
 		for (int i = 0, j = 0, k = 0; i < insertTypes.length; ++i) {
 			insertTypes[i] = meta.getColumnType(i+1);
+			columnNames[i] = meta.getColumnName(i+1);
+			columnTypeTable.put(columnNames[i], insertTypes[i]);
 			iSql = iSql + (iSql.length() > 0 ? ", " : "") + "?";
-			String name = colsIdx.get(new Integer(i+1)).name;
-			if (uKey.contains(name)) {
+			if (uKey.contains(columns[i].name)) {
 				whereTypes[k++] = meta.getColumnType(i+1);
-				where = where + (where.length() > 0 ? " AND " : "") + name + " = ?";
+				where = where + (where.length() > 0 ? " AND " : "") + columns[i].name + " = ?";
 			} else {
 				updateTypes[j++] = meta.getColumnType(i+1);
-				uSql = uSql + (uSql.length() > 0 ? ", " : "") + name + " = ?";
+				uSql = uSql + (uSql.length() > 0 ? ", " : "") + columns[i].name + " = ?";
 			}
 		}
 		for (int i = 0, j = updateTypes.length - whereTypes.length; i < whereTypes.length; ++i) {
@@ -192,8 +203,7 @@ public class TimerReplicar extends Module implements TimerTask {
 		private int copyUpdate(ResultSet set) throws Exception {
 			Object[] cols = new Object[updateTypes.length];
 			for (int i = 0, j = 0, k = updateTypes.length - whereTypes.length; i < updateTypes.length; ++i) {
-				String name = colsIdx.get(new Integer(i+1)).name;
-				if (uKey.contains(name)) {
+				if (uKey.contains(columns[i].name)) {
 					cols[k++] = set.getObject(i+1);
 				} else {
 					cols[j++] = set.getObject(i+1);
@@ -205,8 +215,7 @@ public class TimerReplicar extends Module implements TimerTask {
 		private void copyDelete(ResultSet set) throws Exception {
 			Object[] cols = new Object[whereTypes.length];
 			for (int i = 0, j = 0; i < updateTypes.length; ++i) {
-				String name = colsIdx.get(new Integer(i+1)).name;
-				if (uKey.contains(name)) {
+				if (uKey.contains(columns[i].name)) {
 					cols[j++] = set.getObject(i+1);
 				}
 			}
@@ -218,74 +227,74 @@ public class TimerReplicar extends Module implements TimerTask {
 				copyInsert(set);
 		}
 		private void mapInsert(ResultSet set, Hashtable<String, Object> h) throws Exception {
-			int[] mapTypes = new int[colsNm.size()];
-			Object[] mapValues = new Object[colsNm.size()];
-			Enumeration<Integer> poses = colsIdx.keys();
-			String sql = "";
-			for (int i = 0; poses.hasMoreElements(); ) {
-				DbColumn column = colsIdx.get(poses.nextElement());
-				Object o = h.get(column.name);
-				if (!column.nullable && o == null)
+			int[] mapTypes = new int[columns.length];
+			Object[] mapValues = new Object[columns.length];
+			String sql1 = "", sql2 = "", inputs = "";
+			for (int i = 0, k = 0; i < columns.length; ++i) {
+				Object o = h.get(columns[i].name);
+				if (!columns[i].nullable && o == null)
 						throw new RuntimeException("非空列必须赋值");
 				if (o != null) {
-					mapTypes[i] = column.type;
-					mapValues[i++] = o;
-					sql = sql + (sql.length() > 0 ? ", " : "") + "?";
+					mapTypes[k] = columns[i].type;
+					mapValues[k++] = o;
+					sql1 = sql1 + (sql1.length() > 0 ? ", " : "") + columns[i].name;
+					sql2 = sql2 + (sql2.length() > 0 ? ", " : "") + "?";
+					inputs = inputs + (k > 1 ? ", " : "") + o.toString();
 				}
-				sql = "INSERT INTO " + tableTo.toLowerCase() + " VALUES (" + sql + ")";
 			}
-			rs.log.info("MAP-INSERT: " + sql);
+			String sql = "INSERT INTO " + tableTo.toLowerCase() + "(" + sql1 + ") VALUES (" + sql2 + ")";
+			rs.log.info("MAP-INSERT: " + sql + " / " + inputs);
 			jdbc.update(sql, mapValues, mapTypes);
 		}
 		private int mapUpdate(ResultSet set, Hashtable<String, Object> h) throws Exception {
-			int[] mapTypes = new int[colsNm.size()];
-			Object[] mapValues = new Object[colsNm.size()];
+			int[] mapTypes = new int[columns.length];
+			Object[] mapValues = new Object[columns.length];
 			int[] keyTypes = new int[uKey.size()];
 			Object[] keyValues = new Object[uKey.size()];
-			String sql = "", where = "";
-			Enumeration<Integer> poses = colsIdx.keys();
-			int i = 0;
-			for (int k = 0; poses.hasMoreElements(); ) {
-				DbColumn column = colsIdx.get(poses.nextElement());
-				Object o = h.get(column.name);
+			String sql = "", where = "", inputs = "";
+			int k = 0;
+			for (int i = 0, j = 0; i < columns.length; ++i) {
+				Object o = h.get(columns[i].name);
 				if (o != null) {
-					if (uKey.contains(column.name)) {
-						keyTypes[k] = column.type;
-						keyValues[k++] = o;
-						where = where + (where.length() > 0 ? " AND " : "") + column.name + " = ?";
+					if (uKey.contains(columns[i].name)) {
+						keyTypes[j] = columns[i].type;
+						keyValues[j++] = o;
+						where = where + (where.length() > 0 ? " AND " : "") + columns[i].name + " = ?";
 					} else {
-						mapTypes[i] = column.type;
-						mapValues[i++] = o;
-						sql = sql + (sql.length() > 0 ? ", " : "") + column.name + " = ?";
+						mapTypes[k] = columns[i].type;
+						mapValues[k++] = o;
+						sql = sql + (sql.length() > 0 ? ", " : "") + columns[i].name + " = ?";
 					}
 				}
 			}
-			for (int k = 0; k < keyTypes.length; ++k) {
-				mapTypes[i] = keyTypes[k];
-				mapValues[i++] = keyValues[k];
+			for (int i = 0; i < keyTypes.length; ++i) {
+				mapTypes[k] = keyTypes[i];
+				mapValues[k++] = keyValues[i];
+			}
+			for (int i = 0; i < mapValues.length; ++i) {
+				inputs = inputs + (i > 0 ? ", " : "") + mapValues[i].toString();
 			}
 			sql = "UPDATE " + tableTo.toLowerCase() + " SET " + sql + " WHERE " + where;
-			rs.log.info("MAP-UPDATE: " + sql);
+			rs.log.info("MAP-UPDATE: " + sql + " / " + inputs);
 			return jdbc.update(sql, mapValues, mapTypes);
 		}
 		private void mapDelete(ResultSet set, Hashtable<String, Object> h) throws Exception {
 			int[] keyTypes = new int[uKey.size()];
 			Object[] keyValues = new Object[uKey.size()];
-			String where = "";
-			Enumeration<Integer> poses = colsIdx.keys();
-			for (int k = 0; poses.hasMoreElements(); ) {
-				DbColumn column = colsIdx.get(poses.nextElement());
-				Object o = h.get(column.name);
+			String where = "", inputs = "";
+			for (int i = 0, j = 0; i < columns.length; ++i) {
+				Object o = h.get(columns[i].name);
 				if (o != null) {
-					if (uKey.contains(column.name)) {
-						keyTypes[k] = column.type;
-						keyValues[k++] = o;
-						where = where + (where.length() > 0 ? " AND " : "") + column.name + " = ?";
+					if (uKey.contains(columns[i].name)) {
+						keyTypes[j] = columns[i].type;
+						keyValues[j++] = o;
+						where = where + (where.length() > 0 ? " AND " : "") + columns[i].name + " = ?";
+						inputs = inputs + (j > 1 ? ", " : "") + o.toString();
 					}
 				}
 			}
 			where = "DELETE FROM " + tableTo.toLowerCase() + " WHERE " + where;
-			rs.log.info("MAP-UPDATE: " + where);
+			rs.log.info("MAP-DELETE: " + where + " / " + inputs);
 			jdbc.update(where, keyValues, keyTypes);
 		}
 		private void mapUpsert(ResultSet set, Hashtable<String, Object> h) throws Exception {
@@ -297,37 +306,42 @@ public class TimerReplicar extends Module implements TimerTask {
 			rs.log.error("-------------------------processRow--------------------------");
 			try {
 				getMetaInfo(set);
-					int syncRowType = ((Integer)set.getObject(insertTypes.length+2)).intValue();
-				    if (replicarType.equals("COPY")) { // 同构
-				    	if (syncRowType == INSERT)
-				    		copyInsert(set);
-				    	else if (syncRowType == UPDATE)
-				    		copyUpdate(set);
-				    	else if (syncRowType == DELETE)
-				    		copyDelete(set);
-				    	else if (syncRowType == UPSERT)
-				    		copyUpsert(set);
-				    	else
-				    		throw new RuntimeException("不支持的行操作类型[" + syncRowType + "]");
-				    } else if (replicarType.equals("MAP")) { // 配置性异构
-				    	Hashtable<String, Object> h = new Hashtable<String, Object>();
-				        for (int i = 0; i < mapperList.size(); ++i) {
-				        	ColumnMapper m = mapperList.get(i);
-				        	h.put(m.getColumnId(), m.executeMap(jdbc, set));
-				        }
-				    	if (syncRowType == INSERT)
-				    		mapInsert(set, h);
-				    	else if (syncRowType == UPDATE)
-				    		mapUpdate(set, h);
-				    	else if (syncRowType == DELETE)
-				    		mapDelete(set, h);
-				    	else if (syncRowType == UPSERT)
-				    		mapUpsert(set, h);
-				    	else
-				    		throw new RuntimeException("不支持的行操作类型[" + syncRowType + "]");
-				    }
-					++count;
-					rs.log.error("count = " + count);
+				int syncRowType = ((Integer)set.getObject(insertTypes.length+2)).intValue();
+			    if (replicarType.equals("COPY")) { // 同构
+			    	if (syncRowType == INSERT)
+			    		copyInsert(set);
+			    	else if (syncRowType == UPDATE)
+			    		copyUpdate(set);
+			    	else if (syncRowType == DELETE)
+			    		copyDelete(set);
+			    	else if (syncRowType == UPSERT)
+			    		copyUpsert(set);
+			    	else
+			    		throw new RuntimeException("不支持的行操作类型[" + syncRowType + "]");
+			    } else if (replicarType.equals("MAP")) { // 配置性异构
+			    	Hashtable<String, Object> h = new Hashtable<String, Object>();
+			    	for (int i = 0; i < insertTypes.length; ++i)
+			    		h.put(columnNames[i], set.getObject(i+1));
+			        for (int i = 0; i < mapperList.size(); ++i) {
+			        	ColumnMapper m = mapperList.get(i);
+			        	int dt = columnTypeTable.get(m.getColumnId());
+			        	Object o = m.executeMap(jdbc, h, dt);
+			        	if (o != null)
+			        		h.put(m.getColumnId(), o);
+			        }
+			    	if (syncRowType == INSERT)
+			    		mapInsert(set, h);
+			    	else if (syncRowType == UPDATE)
+			    		mapUpdate(set, h);
+			    	else if (syncRowType == DELETE)
+			    		mapDelete(set, h);
+			    	else if (syncRowType == UPSERT)
+			    		mapUpsert(set, h);
+			    	else
+			    		throw new RuntimeException("不支持的行操作类型[" + syncRowType + "]");
+			    }
+				++count;
+				rs.log.error("count = " + count);
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}

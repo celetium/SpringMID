@@ -24,9 +24,10 @@
 	<bean id="sub1.1" class="b.SpringMID.tools.db.ColumnMapper" p:columnId="GROUPID" p:value="GROUPID" p:type="COPY"/>
 	<bean id="sub1.2" class="b.SpringMID.tools.db.ColumnMapper" p:columnId="ID" p:value="ID" p:type="COPY"/>
 	<bean id="sub1.3" class="b.SpringMID.tools.db.ColumnMapper" p:columnId="NAME" p:value="NAME" p:default="?" p:type="COPY"/>
-	<bean id="sub1.4" class="b.SpringMID.tools.db.ColumnMapper" p:columnId="CONVERTERID" p:if="TRUE" p:value="CONVERTERID" p:default="x-converter" p:type="COPY"/>
+	<bean id="sub1.4" class="b.SpringMID.tools.db.ColumnMapper" p:columnId="CONVERTERID" p:if="$ID == 'DIV1'" p:value="CONVERTERID" p:default="x-converter" p:type="COPY"/>
+	<bean id="sub1.4a" class="b.SpringMID.tools.db.ColumnMapper" p:columnId="CONVERTERID" p:value="CONVERTERID" p:type="COPY"/>
 	<bean id="sub1.5" class="b.SpringMID.tools.db.ColumnMapper" p:columnId="TRIM" p:value="1" p:type="CONST"/>
-	<bean id="sub1.6" class="b.SpringMID.tools.db.ColumnMapper" p:columnId="TRIM" p:value="TRIM" p:type="MAP">
+	<bean id="sub1.6" class="b.SpringMID.tools.db.ColumnMapper" p:columnId="NAME" p:value="TRIM" p:type="MAP">
 		<property name="valueMapList">
 			<list>
 				<value>0->N</value>
@@ -36,14 +37,17 @@
 			</list>
 		</property>
 	</bean>
-	<bean id="sub1.7" class="b.SpringMID.tools.db.ColumnMapper" p:columnId="CONVERTERNAME" p:value="select CONVERTERNAME from t_converter where converterId=?" p:type="SQL"/>
-	<bean id="sub1.8" class="b.SpringMID.tools.db.ColumnMapper" p:columnId="CONVERTERID" p:value="concat($CONVERTERID,'.')" p:type="EXPR"/>
-	<bean id="sub1" class="b.SpringMID.tools.db.TimerReplicar" p:replicarId="1" p:tableFrom="PCK" p:tableTo="T_PCK_DUP" p:interval="10" >
+	<bean id="sub1.7" class="b.SpringMID.tools.db.ColumnMapper" p:columnId="NAME" p:value="select NAME from t_converter where id=:CONVERTERID" p:type="SQL"/>
+	<bean id="sub1.8" class="b.SpringMID.tools.db.ColumnMapper" p:columnId="CONVERTERID" p:value="DT('yyyy-MM-dd')" p:type="EXPR"/>
+	<bean id="sub1" class="b.SpringMID.tools.db.TimerReplicar" p:replicarId="1" p:tableFrom="PCK" p:tableTo="T_PCK_DUP" p:interval="10" p:replicarType="MAP" >
 		<property name="jdbcTo"> <ref bean="jdbc" /> </property>
 		<property name="mapperList">
 			<list>
 				<ref bean="sub1.1" />
 				<ref bean="sub1.2" />
+				<ref bean="sub1.4a" />
+				<ref bean="sub1.7" />
+				<ref bean="sub1.5" />
 			</list>
 		</property>
 	</bean>
