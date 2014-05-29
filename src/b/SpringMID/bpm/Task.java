@@ -25,12 +25,13 @@ public class Task extends Module {
 	Task(BusinessProcess bp) {
 		this.bp = bp;
 	}
-	void complete(BusinessProcessData bpd, List<Task> nexts) {
+	void complete(BusinessProcessData bpd) {
 		rs.log.info("Task [" + getId() + "] executing.");
 		for (int i = 0; todos != null && i < todos.size(); ++i)
 			todos.get(i).complete(bpd);
+		bpd.complete(this);
 		for (int i = 0; transitions != null && i < transitions.size(); ++i)
-			transitions.get(i).next(bpd, nexts);
+			transitions.get(i).next(bpd);
 		rs.log.info("Task [" + getId() + "] completed.");
 	}
 	public int getType() {

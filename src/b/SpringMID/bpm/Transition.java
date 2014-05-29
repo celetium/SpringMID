@@ -17,7 +17,7 @@ public class Transition {
 	public void setNextTask(Task nextTask) {
 		this.nextTask = nextTask;
 	}
-	public void next(BusinessProcessData bpd, List<Task> nexts) {
-		nexts.add(nextTask);
+	public void next(BusinessProcessData bpd) {
+		bpd.activate(nextTask);
 	}
 }

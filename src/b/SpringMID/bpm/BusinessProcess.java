@@ -1,6 +1,5 @@
 package b.SpringMID.bpm;
 
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -13,28 +12,23 @@ import b.SpringMID.core.Module;
  */
 public class BusinessProcess extends Module {
 
-	private List<BusinessProcessData> bpCases = new ArrayList<BusinessProcessData>();
+	private Hashtable<String, BusinessProcessData> caseTable = new Hashtable<String, BusinessProcessData>();
 	
 	@Override
 	public void start(Object[] paras) {
 		String taskId = (String)paras[0];
-		BusinessProcessData bpd = new BusinessProcessData(this);
-		bpCases.add(bpd);
-		List<Task> nexts = new ArrayList<Task>();
-		nexts.add(startTask);
 		if (taskId.equals("START")) {
-			startTask.complete(bpd, nexts);
+			BusinessProcessData bpd = new BusinessProcessData(this);
+			caseTable.put(bpd.getId(), bpd);
+			startTask.complete(bpd);
 		}
 		else {
 			Task t = taskTable.get(taskId);
-			if (t != null) {
-				t.complete(bpd, nexts);
-			}
-		}
-		for (int i = 1; i < nexts.size(); ++i) {
-			nexts.get(i).complete(bpd, nexts);
-			if (nexts.get(i).getType() == Task.END)
-				break;
+			rs.error((t == null), "任务[" + taskId + "]不存在");
+			String caseId = (String)paras[1];
+			BusinessProcessData bpd = caseTable.get(caseId);
+			rs.error((!bpd.isActivated(t)), "任务[" + taskId + "]尚未激活");
+			t.complete(bpd);
 		}
 	}
 	public List<Task> getTasks() {
