@@ -17,7 +17,8 @@ public class Transition {
 	public void setNextTask(Task nextTask) {
 		this.nextTask = nextTask;
 	}
-	public void next(BusinessProcessData bpd) {
-		bpd.activate(nextTask);
+	public Task next(BusinessProcessData bpd) {
+		boolean can = true; // Antlr.
+		return can ? nextTask : null;
 	}
 }

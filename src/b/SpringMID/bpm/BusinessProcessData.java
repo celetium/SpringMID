@@ -2,6 +2,7 @@ package b.SpringMID.bpm;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
 public class BusinessProcessData implements Serializable {
@@ -19,11 +20,24 @@ public class BusinessProcessData implements Serializable {
 	public void complete(Task t) {
 		completed.add(t);
 	}
-	private List<Task> activated = new ArrayList<Task>();
-	public void activate(Task t) {
-		activated.add(t);
+	private Hashtable<String, List<Task> > activated = new Hashtable<String, List<Task> >();
+	public void activate(Task prev, Task t) {
+		List<Task> prevs = activated.get(t.getId());
+		if (prevs == null) {
+			prevs = new ArrayList<Task>();
+			activated.put(t.getId(), prevs);
+		}			
+		prevs.add(prev);
 	}
 	public boolean isActivated(Task t) {
-		return activated.contains(t);
+		List<Task> prevs = activated.get(t.getId());
+		boolean b = (prevs != null);
+		if (b && t.getType() == Task.AND) {
+			List<Task> prevTasks = t.getPrevTasks();
+			for (int i = 0; b && i < prevTasks.size(); ++i) {
+				b = b && prevs.contains(prevTasks.get(i));
+			}
+		}
+		return b;
 	}
 }
