@@ -9,3 +9,4 @@
 *.log
 *.lck
 .DS_Store
+target/
