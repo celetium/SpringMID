@@ -1,3 +1,5 @@
+INSERT INTO T_CONVERTER VALUES ('converter.fix', 'Fix length');
+INSERT INTO T_CONVERTER VALUES ('converter.div', 'Dividing symbol');
 -- 仅测试Replicar
 DELETE FROM T_PCK_DUP WHERE 1=1;
 DELETE FROM XT_PCK WHERE 1=1;
