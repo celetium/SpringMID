@@ -1,3 +1,15 @@
+-- 源表
+drop table T_PCK;
+create table T_PCK
+(
+  groupId varchar(30) not null,
+  id varchar(30) not null,
+  name varchar(30),
+  converterId varchar(30) not null,
+  trim integer,
+  primary key (groupId, id)
+);
+-- 源表数据变化表
 drop table XP_PCK;
 create table XP_PCK
 (
@@ -11,7 +23,7 @@ create table XP_PCK
   extraStatus varchar(1) not null
 );
 create unique index XP_PCK_UK on XP_PCK (syncSeqNo);
-
+-- 数据变化中间表
 drop table XT_PCK;
 create table XT_PCK
 (
@@ -24,7 +36,7 @@ create table XT_PCK
   syncRowType integer not null
 );
 create unique index XT_PCK_UK on XT_PCK (syncSeqNo);
-
+-- 数据同步记录表
 drop table XX_SYNC_REC;
 create table XX_SYNC_REC
 (
@@ -35,7 +47,7 @@ create table XX_SYNC_REC
 );
 create unique index XX_SYNC_REC_UK on XX_SYNC_REC (syncType, syncId);
 create index XX_SYNC_REC_DK on XX_SYNC_REC (syncStatus);
--- For testing
+-- 目的表（测试用）
 drop table T_PCK_DUP;
 create table T_PCK_DUP
 (
